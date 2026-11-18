@@ -157,6 +157,7 @@ const embedUrl = computed(() => {
                   :src="pillar.icon || (idx === 0 ? '/images/company/kien-tao.svg' : idx === 1 ? '/images/company/hieu-qua.webp' : '/images/company/dong-hanh.svg')"
                   :alt="pillar.title"
                   class="w-10 h-10 object-contain shrink-0"
+                  @error="(e: any) => { e.target.src = idx === 0 ? '/images/company/kien-tao.svg' : idx === 1 ? '/images/company/hieu-qua.webp' : '/images/company/dong-hanh.svg' }"
                 />
                 <span class="text-ds-18 font-medium text-[#141414] whitespace-nowrap">
                   {{ pillar.title }}
@@ -233,11 +234,12 @@ const embedUrl = computed(() => {
               <picture class="w-full h-full block">
                 <source :srcset="videoPoster || '/images/company/video-poster.webp'" type="image/webp" />
                 <img
-                  :src="videoPoster || '/images/company/video-poster.png'"
+                  :src="videoPoster || '/images/company/video-poster.webp'"
                   alt="Teanis Team Video"
                   loading="lazy"
                   decoding="async"
                   class="w-full h-full object-contain pointer-events-none select-none"
+                  @error="(e: any) => { e.target.src = '/images/company/video-poster.webp' }"
                 />
               </picture>
 

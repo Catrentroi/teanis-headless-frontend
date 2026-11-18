@@ -123,6 +123,7 @@ onMounted(() => {
           :src="illustration || '/images/illustation.svg'"
           alt="Hero Illustration"
           class="w-full max-w-[560px] lg:max-w-[700px] xl:max-w-[892px] h-auto object-contain filter drop-shadow-xl"
+          @error="(e: any) => { e.target.src = '/images/illustation.svg' }"
         />
       </div>
     </div>

@@ -52,6 +52,7 @@ const cardBgColor = computed(() => {
         :src="resolvedIllustration"
         alt="Teanis Business Solutions Collaboration"
         class="w-full min-h-[360px] sm:min-h-[460px] md:min-h-[560px] lg:min-h-0 h-auto object-cover object-bottom block select-none pointer-events-none"
+        @error="(e: any) => { e.target.src = '/images/footer/illustrator-layer2.svg' }"
       />
     </div>
 

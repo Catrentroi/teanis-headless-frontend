@@ -62,6 +62,8 @@ export default defineNuxtConfig({
   image: {
     domains: [
       process.env.WP_DOMAIN || 'headless-landing.local',
+      'dev-teanis.pantheonsite.io',
+      'pantheonsite.io',
       'localhost'
     ],
     format: ['webp', 'avif'],

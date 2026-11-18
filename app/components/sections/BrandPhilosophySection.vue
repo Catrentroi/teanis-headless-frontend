@@ -712,6 +712,7 @@ onUnmounted(() => {
           :src="brandLogo"
           alt="Teanis Brand Logo"
           class="w-full max-w-[500px] sm:max-w-[700px] lg:max-w-[888px] h-auto object-contain select-none pointer-events-none"
+          @error="(e: any) => { e.target.src = '/images/philosophy/teanis-brand-logo.svg' }"
         />
       </div>
 
@@ -736,6 +737,7 @@ onUnmounted(() => {
             :src="symbolIcon"
             alt="Monogram Symbol"
             class="w-full h-full max-w-[300px] max-h-[444px] object-contain"
+            @error="(e: any) => { e.target.src = '/images/philosophy/monogram-symbol.svg' }"
           />
         </div>
 
