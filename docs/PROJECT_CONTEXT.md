@@ -172,12 +172,22 @@ landing-nuxt/
 
 *(Lịch sử các phiên làm việc chi tiết trước ngày 19/11/2026 đã được lưu trữ tại [docs/archive/WORK_LOG_2026_11.md](file:///d:/wordpress/headless/landing-nuxt/docs/archive/WORK_LOG_2026_11.md)).*
 
-### Phiên làm việc gần nhất (19/11/2026) - Rolling Window
-- **Chuẩn hóa Golden Blueprints**: Thiết lập [docs/DESIGN_PATTERNS.md](file:///d:/wordpress/headless/landing-nuxt/docs/DESIGN_PATTERNS.md) (Section GSAP SSR-Safe, WPGraphQL cleaner, Node UTF-8 sync script).
-- **Zero-Boilerplate Data Binding**: Thay thế toàn bộ props thủ công tại `index.vue` và `about.vue` bằng cú pháp `v-bind="pageData.sectionName"` (giảm hơn 80% số dòng code trang).
-- **Composable SEO 1 Dòng Lệnh**: Gom 70 dòng Yoast SEO / Schema / Canonical vào `usePageSeo()`.
-- **Zero-CORS GraphQL Proxy**: Triển khai `server/api/graphql.post.ts` chuyển tiếp query từ browser sang WP, triệt tiêu 100% nguy cơ CORS khi deploy Vercel + Pantheon.
-- **Dọn dẹp Section Bloat**: Refactor `CoreValuesSection.vue` (193 -> 93 dòng qua `v-for`) và `CompanyInfoSection.vue` (430 -> 367 dòng, xóa fallback template trùng lặp).
+### Phiên làm việc: 19/11/2026 (Sáng & Chiều) - Rolling Window
+- **Zero-Boilerplate & Tinh gọn Codebase (/ponytail)**:
+  - Thiết lập [docs/DESIGN_PATTERNS.md](file:///d:/wordpress/headless/landing-nuxt/docs/DESIGN_PATTERNS.md) (GSAP SSR-Safe, WPGraphQL auto-cleaner, Node UTF-8 sync script).
+  - Thu gọn `index.vue` và `about.vue` (-85% code) bằng cú pháp `v-bind="pageData.sectionName"` và composable `usePageSeo()`.
+  - Refactor `useAboutPage.ts` (294 -> 147 dòng, -50%), xóa bỏ triệt để việc ép chuỗi rỗng `|| ''` để phục hồi default props và `v-if`.
+  - Tinh giản Section components (`CoreValuesSection.vue`, `CompanyInfoSection.vue`), dọn sạch code trùng lặp.
+- **Gia cố Bảo mật Production (Enterprise-Grade Security)**:
+  - Ẩn hoàn toàn domain WordPress khỏi Client JS bundle (chuyển `wpDomain`, `wpGraphqlUrl`, `wpApiUrl` vào Private Runtime Config).
+  - Kích hoạt bộ lọc chặn quét cây trường ACF (`__schema`, `__type`) và chặn dò danh mục Admin (`users`) tại `server/api/graphql.post.ts` (403 Forbidden).
+  - Xóa sạch key hardcode `teanis_secret_lead_2026` trong code và tài liệu; chuẩn hóa placeholder an toàn trong [.env.example](file:///d:/wordpress/headless/landing-nuxt/.env.example).
+  - Vô hiệu hóa cache cho toàn bộ route API (`routeRules: { '/api/**': { cache: false, isr: false } }`).
+- **Triển khai Production Hoàn tất (Vercel + Pantheon)**:
+  - Đồng bộ thành công 79 trường ACF Pro lên Pantheon Cloud qua webhook sync `?sync_acf=secret123`.
+  - Xử lý triệt để lỗi mất Body trên Vercel do lệch schema và bộ đệm ISR 1 tiếng.
+  - Tự động suy luận link REST API từ `WP_GRAPHQL_URL` và nâng cấp xử lý lỗi form tại `server/api/contact.post.ts`.
+  - Website production `https://teanis-headless-frontend.vercel.app/` kết nối trực tiếp Pantheon hoạt động mượt mà 100%.
 
 ---
 
