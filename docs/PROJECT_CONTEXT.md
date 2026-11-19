@@ -168,75 +168,7 @@ landing-nuxt/
 
 ## 6. Nhật Ký Công Việc (Recent Work Log)
 
-### Phiên làm việc: 12/11/2026
-- **Header & Hero**:
-  - Chuyển TheHeader thành card nổi cố định (`fixed top-0`, `max-w-[1400px]`, `rounded-[16px]`).
-  - HeroSection: Tách màu chữ "GROWTH" thành màu trắng, tích hợp dải hashtag marquee thành row full-width ở đáy hero.
-- **Section 03 (Company Info)**:
-  - Cố định toàn bộ các layer đồ họa của card video 10+ năm kinh nghiệm (`exp-1.svg`, `exp-ring.svg`, `card-bg-shape.png`, `card-border-frame.png`, nút Play).
-  - Phía WordPress chỉ cần nhập: `company_video_poster` và `company_video_url`.
-  - Thêm trường text độc lập: `company_pillars_title`, `company_commitments_title`, `company_profile_note` để text giới thiệu không bị biến thành bullet list.
-- **WordPress & ACF Fixes**:
-  - Khắc phục triệt để lỗi mã hóa font tiếng Việt (mojibake) bằng cách chuẩn hóa JSON UTF-8 không BOM.
-  - Đồng bộ thành công 78 trường ACF vào Local WP qua webhook `?sync_acf=secret123`.
-- **Font & Typography**:
-  - Chuẩn hóa toàn bộ dự án sử dụng duy nhất font **Lexend** (`fontFamily.sans: ['Lexend', 'sans-serif']`).
-- **Section 06 & 07 (Tầm nhìn - Sứ mệnh & Giá trị cốt lõi)**:
-  - Cập nhật `VisionMissionSection.vue`: 2 card Tầm nhìn & Sứ mệnh bo tròn 20px với watermark icon mắt và mục tiêu, nền `#F0F0F0`.
-  - Cập nhật `CoreValuesSection.vue`: Vòng tròn xoay mũi tên ở giữa (`circle-arrows.png`) cùng 4 card nghiêng cố định S, F, P, B (`card-s.png`, `card-f.png`, `card-p.png`, `card-b.png`), nội dung text overlay từ backend WPGraphQL.
-- **Section 05 (Lịch sử hình thành / Timeline)**:
-  - Xây dựng `TimelineSection.vue` từ Figma node `1:825` với 4 mốc thời gian (2015, 2019, 2023, 2024), đường runway ngang, gắn sẵn semantic class sẵn sàng cho animation GSAP.
-- **Section 08 (Câu chuyện thương hiệu / Brand Philosophy)**:
-  - Chuẩn hóa tiêu đề chính/phụ, nâng cấp `phil_story_text` thành WYSIWYG editor trên CMS (tự do bôi đậm, tự sinh thẻ `<p>` cách nhau `1.25rem`, không render rác `<br/>`).
-  - Lắp đặt toàn bộ hệ thống background theo thứ tự Figma: `Frame1.svg` (luminosity wave đỉnh trang) -> `Vector.svg` (sóng giữa) -> `Union.svg` (4 cụm khối quanh Monogram) -> `Frame.svg` (cột rounded rects đáy) kết hợp gradient `#83f3e9`.
-  - Chuyển 4 thẻ nguyên tố (TERRA, AQUA, IGNIS, VENTUS) về local với Inline SVG và tích hợp hiệu ứng GSAP hover độc bản (khối nổi địa tầng, sóng nước dập dềnh, ngọn lửa bập bùng rực sáng, gió lướt bay bổng).
-  - Tối ưu backend ACF: Xóa repeater `phil_element_images` thừa, tự động dọn sạch các bản ghi trùng lặp qua webhook sync.
 
-### Phiên làm việc: 16/11/2026
-
-#### Công cụ & quy trình (Ponytail)
-- Cài upstream **[DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail)**: clone `C:\Users\Admin\ponytail`, hooks tại `landing-nuxt\.cursor\hooks.json`, skills CLI trong `landing-nuxt\.agents\skills\`. Teanis CMS rules vẫn ở `.cursorrules` / file này — không nhầm với skill ponytail upstream.
-
-#### Audit Figma OP2 (`Jxs4aII2hgoKk0DYddd3In`, About `1:659`) vs code @ ~1400px
-- Đối chiếu từng section (Header → Footer): spacing section, badge 24/36, CTA icon 42px, Metrics gap desktop, v.v.
-- **Chưa pixel-perfect** toàn trang; một số hạng mục cố ý giữ (footer `pt` overlap CTA, Metrics số dạng font thay vì SVG artwork Figma).
-
-#### Pass chỉnh layout / spacing (theo audit)
-- **Section padding**: ví dụ Company `lg:pt-32 lg:pb-[100px]`, Timeline/Core/Vision/Philosophy/Metrics `py`/`mb` theo token 128/100/80…
-- **Header**: menu `gap-8`; CTA icon **42×42**, SVG 24px.
-- **Company**: cột `gap-8`, title dot `text-ds-24`, H2 Teanis `text-ds-36 font-medium`.
-- **Metrics @ xl**: `flex justify-between`, ô `w-[200px]`, label `text-ds-20`.
-- **BrandPhilosophy**: section `lg:pt-32 lg:pb-[60px]`; nhãn thẻ `text-ds-48`; slogan đóng **một màu** `#141414` (khác Hero — GROWTH trắng).
-
-#### Pass 2 typography (design tokens trong code)
-- `tailwind.config.ts`: `fontSize` `text-ds-16` … `text-ds-82` map Figma variables (Lexend).
-- `app/assets/css/figma-tokens.css` + `css: [...]` trong `nuxt.config.ts` (file phải nằm **`app/assets/`**, không phải root `assets/`).
-- Rà soát component: thay `text-[18px] leading-[27px]` / `leading-snug` bằng `text-ds-*` ở Header, Hero, Company, Timeline, Vision, Core, Metrics, Footer, PreFooter, Hashtag, Philosophy.
-- **Spacing nội khối**: ví dụ Company cột trái `gap-8`, Philosophy bỏ `mb-[100px]` giữa dot và H2 → `mb-8`, Vision dot block `mb-8`.
-- **Còn lại / technical debt**:
-  - Vision: badge `text-ds-24` cho cả chuỗi title dài — có thể cần tách ACF (badge ngắn + title 36 center).
-  - Metrics: con số vẫn CSS `font-black`, chưa asset SVG như Figma.
-  - Hero H1: `font-bold` (700) không `extrabold`; breakpoint giữa `lg:text-[74px]` và `xl:text-ds-82`.
-
-#### `BrandPhilosophySection.vue` — GSAP & visual (các lần chỉnh trước trong phiên)
-- **AQUA**: animation sóng (pivot teardrop từ `aqua-card.svg`).
-- **IGNIS**: morph chậm + opacity flicker riêng; **box-shadow pulse** chỉ sau hover tween `0.35s`, `immediateRender: false` (tránh snap shadow khi hover).
-- **VENTUS**: path SVG `fill="white"` `fill-opacity="0.6"` (khớp `ventus-card.svg`); reset opacity 0.6 on leave.
-- GSAP: `onMounted` + `gsap.context`, cleanup `ctx.revert()` / kill tweens `onUnmounted`.
-
-#### `CompanyInfoSection.vue` — overlay 10+ (Figma `1:781`)
-- **Trước:** flex `items-center justify-center` → số 1/0/+ căn giữa, thiếu lệch dọc Figma, chữ nhỏ center trong vòng 0.
-- **Sau:** wrapper `.experience-badge` trên poster video; từng asset **absolute %** theo khung `1:779` (627×431): `1` cao hơn (`top 25.51%`), `0` thấp hơn (`top 34.66%`), `+` `top 30.77%`; thêm layer **`exp-ring-inner.svg`**; copy **trái** `left 39.4%`, `font-size: 8.35cqh`, `line-height 1.5`, `letter-spacing -0.5px`.
-- Nếu poster CMS lệch tỉ lệ ảnh, chỉnh % trong `<style scoped>` `.experience-badge__*`.
-
-#### File đã đụng (tóm tắt)
-- Layout: `TheHeader.vue`, `TheFooter.vue`
-- Sections: `HeroSection`, `CompanyInfoSection`, `MetricsSection`, `TimelineSection`, `VisionMissionSection`, `CoreValuesSection`, `BrandPhilosophySection`, `PreFooterCtaSection`, `HashtagBar`
-- Config: `tailwind.config.ts`, `nuxt.config.ts`, `app/assets/css/figma-tokens.css`
-
-#### Việc nên làm tiếp (gợi ý cho phiên sau)
-- Pre-footer layout so node `1:1017` với screenshot live.
-- Pass 3: grep còn `text-[Npx]` / `leading-[` không cần thiết.
 
 *(Lịch sử các phiên làm việc chi tiết trước ngày 19/11/2026 đã được lưu trữ tại [docs/archive/WORK_LOG_2026_11.md](file:///d:/wordpress/headless/landing-nuxt/docs/archive/WORK_LOG_2026_11.md)).*
 

@@ -27,7 +27,7 @@
 1. Đăng nhập `wp-admin` trên Pantheon, cài đặt các plugin cốt lõi:
    - `wp-graphql`, `advanced-custom-fields-pro`, `wpgraphql-acf`, `wordpress-seo`, `add-wpgraphql-seo`.
 2. Sao chép file `wp-content/mu-plugins/headless-config.php` lên Pantheon qua giao diện SFTP hoặc Git của Pantheon.
-3. Import dữ liệu ACF từ file `d:\wordpress\headless\acf-about-page.json` hoặc chạy webhook sync `?sync_acf=secret123`.
+3. Import dữ liệu ACF từ file `d:\wordpress\headless\acf-about-page.json` hoặc chạy webhook sync `?sync_acf=<your_sync_secret>`.
 4. Export database hoặc bài viết trang từ LocalWP (dùng plugin *Duplicator Pro* hoặc *All-in-One WP Migration*) và import vào Pantheon.
 
 ### Bước 3: Deploy Frontend Nuxt 4 lên Vercel
@@ -38,7 +38,7 @@
    - `WP_API_URL`: `https://dev-teanis-cms.pantheonsite.io/wp-json`
    - `WP_DOMAIN`: `dev-teanis-cms.pantheonsite.io`
    - `SITE_URL`: `https://teanis.com`
-   - `WP_HEADLESS_SECRET`: `teanis_secret_lead_2026`
+   - `WP_HEADLESS_SECRET`: `<chuoi_secret_ngau_nhien_do_ban_tu_dat>`
    - `CONTACT_RECEIVE_EMAIL`: `contact@teanis.com`
 4. Nhấn **Deploy**. Vercel sẽ tự động build và cấp phát URL xem trước.
 

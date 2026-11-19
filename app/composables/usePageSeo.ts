@@ -11,7 +11,7 @@ export interface PageSeoOptions {
 export function usePageSeo(seoData?: any, options: PageSeoOptions = {}) {
   const config = useRuntimeConfig()
   const siteUrl = config.public.siteUrl || 'https://teanis.com'
-  const wpDomain = config.public.wpDomain || 'headless-landing.local'
+  const wpDomain = (config.wpDomain as string) || (config.public as any)?.wpDomain || 'headless-landing.local'
 
   const pagePath = options.pagePath || ''
   const pageUrl = `${siteUrl}${pagePath === '/' ? '' : pagePath}`

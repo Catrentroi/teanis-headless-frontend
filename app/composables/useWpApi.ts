@@ -1,6 +1,6 @@
 export const useWpApi = () => {
   const config = useRuntimeConfig()
-  const directEndpoint = config.public.wpGraphqlUrl || 'http://headless-landing.local/graphql'
+  const directEndpoint = (config.wpGraphqlUrl as string) || (config.public as any)?.wpGraphqlUrl || 'http://headless-landing.local/graphql'
 
   const query = async <T = any>(document: string, variables?: Record<string, any>): Promise<T> => {
     // Client-side (Trình duyệt): Luôn gọi qua Nitro proxy nội bộ để 100% không bị CORS

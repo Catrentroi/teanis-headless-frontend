@@ -6,7 +6,25 @@
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const config = useRuntimeConfig()
-  const endpoint = config.public.wpGraphqlUrl || 'http://headless-landing.local/graphql'
+  const endpoint = (config.wpGraphqlUrl as string) || (config.public as any)?.wpGraphqlUrl || 'http://headless-landing.local/graphql'
+
+  const queryStr = String(body?.query || '')
+
+  // 1. Bảo mật: Chặn đứng mọi hành vi dò tìm cây trường ACF / Schema Introspection
+  if (/__schema|__type/i.test(queryStr)) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'GraphQL introspection queries are forbidden.'
+    })
+  }
+
+  // 2. Bảo mật: Chặn đứng truy vấn danh mục tài khoản Admin / User
+  if (/\busers\b/i.test(queryStr)) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'User directory queries are forbidden.'
+    })
+  }
 
   try {
     const response = await $fetch(endpoint, {

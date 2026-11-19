@@ -24,9 +24,17 @@ export default defineEventHandler(async (event) => {
   }
 
   // 3. Đồng bộ lưu vào WordPress Custom Post Type qua REST API
-  const wpApiUrl = (config.public?.wpApiUrl || 'http://headless-landing.local/wp-json').replace(/\/$/, '')
+  const wpApiUrl = ((config.wpApiUrl as string) || (config.public as any)?.wpApiUrl || 'http://headless-landing.local/wp-json').replace(/\/$/, '')
   const wpEndpoint = `${wpApiUrl}/teanis/v1/contact-submissions`
-  const secret = config.wpHeadlessSecret || 'teanis_secret_lead_2026'
+  const secret = config.wpHeadlessSecret
+
+  if (!secret) {
+    console.error('[Contact API] Missing WP_HEADLESS_SECRET in runtimeConfig.')
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Server security configuration error.'
+    })
+  }
 
   let wpResult = null
   try {

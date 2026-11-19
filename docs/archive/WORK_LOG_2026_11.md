@@ -6,6 +6,19 @@ Tài liệu này lưu trữ lịch sử các phiên làm việc và giai đoạn
 
 ## 1. Nhật Ký Chi Tiết Các Phiên Làm Việc Trước Đó
 
+### Phiên làm việc: 12/11/2026
+- **Header & Hero**: Chuyển TheHeader thành card nổi cố định (`fixed top-0`, `max-w-[1400px]`). HeroSection tách chữ "GROWTH" trắng, tích hợp hashtag marquee.
+- **Section 03 (Company Info)**: Cố định các layer đồ họa card video 10+ năm kinh nghiệm. Thêm text field độc lập tránh bị biến thành bullet list.
+- **WordPress & ACF Fixes**: Chuẩn hóa JSON UTF-8 không BOM, sửa lỗi mojibake font tiếng Việt. Sync 78 trường ACF vào Local WP.
+- **Typography & Components**: Thống nhất dùng font Lexend. Cập nhật `VisionMissionSection`, `CoreValuesSection`, `TimelineSection` và `BrandPhilosophySection` (WYSIWYG editor, hệ thống background SVG và hiệu ứng hover 4 nguyên tố).
+
+### Phiên làm việc: 16/11/2026
+- **Công cụ & quy trình (Ponytail)**: Cài upstream ponytail skills CLI trong `.agents/skills/`.
+- **Audit Figma OP2**: Đối chiếu từng section từ Header đến Footer theo mockup Figma.
+- **Pass chỉnh layout & spacing**: Chuẩn hóa padding, menu gap, nút CTA 42x42px.
+- **Design Tokens**: Rà soát `figma-tokens.css` và `tailwind.config.ts`, map toàn bộ text sang `text-ds-*`.
+- **GSAP & Visual**: Hoàn thiện animation sóng nước, ngọn lửa, gió lướt cho 4 thẻ nguyên tố tại `BrandPhilosophySection.vue`. Chuẩn hóa overlay 10+ năm kinh nghiệm tại `CompanyInfoSection.vue`.
+
 ### Phiên làm việc: 17/11/2026
 - **Visual & Typography Polish**: VisionMissionSection chuẩn hóa semantic badge 24px, title 36px, description 18px. Chuẩn hóa kích thước CTA button và icon box 42x42px trên Header, Hero, PreFooter. Áp dụng design tokens `text-ds-*`.
 - **SEO On-page & Yoast WPGraphQL**: Tích hợp `wordpress-seo` + `add-wpgraphql-seo`, tự động lấy SEO title, description, schema `@graph`, và rewrite domain CMS sang Frontend. Bổ sung `siteIconUrl` làm dynamic favicon. Audit SEOquake xử lý 14 ảnh thiếu thẻ ALT.

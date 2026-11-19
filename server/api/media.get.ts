@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
 
   // Chỉ cho phép proxy ảnh từ domain WordPress đã cấu hình (bảo mật cơ bản)
   const config = useRuntimeConfig()
-  const allowedDomain = config.public.wpDomain || 'headless-landing.local'
+  const allowedDomain = (config.wpDomain as string) || (config.public as any)?.wpDomain || 'headless-landing.local'
   let targetUrl: URL
 
   try {

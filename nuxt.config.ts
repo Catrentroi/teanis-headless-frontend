@@ -93,17 +93,17 @@ export default defineNuxtConfig({
     wpAppPassword: process.env.WP_APP_PASSWORD,
     wpAppUser: process.env.WP_APP_USER,
     contactReceiveEmail: process.env.CONTACT_RECEIVE_EMAIL || 'trieuncn@teanis.vn',
-    wpHeadlessSecret: process.env.WP_HEADLESS_SECRET || 'teanis_secret_lead_2026',
+    wpHeadlessSecret: process.env.WP_HEADLESS_SECRET || '',
+    wpDomain: process.env.WP_DOMAIN || 'headless-landing.local',
+    wpApiUrl: process.env.WP_API_URL || 'http://headless-landing.local/wp-json',
+    wpGraphqlUrl: process.env.WP_GRAPHQL_URL || 'http://headless-landing.local/graphql',
     smtpHost: process.env.SMTP_HOST || '',
     smtpPort: process.env.SMTP_PORT || '465',
     smtpUser: process.env.SMTP_USER || '',
     smtpPass: process.env.SMTP_PASS || '',
 
     public: {
-      siteUrl: process.env.SITE_URL || 'http://localhost:3000',
-      wpDomain: process.env.WP_DOMAIN || 'headless-landing.local',
-      wpApiUrl: process.env.WP_API_URL || 'http://headless-landing.local/wp-json',
-      wpGraphqlUrl: process.env.WP_GRAPHQL_URL || 'http://headless-landing.local/graphql'
+      siteUrl: process.env.SITE_URL || 'http://localhost:3000'
     }
   },
 
