@@ -16,6 +16,7 @@ export interface AboutPageData {
     phonetic?: string
     audioUrl?: string
     name?: string
+    companyName?: string
     description?: string
     pillarsTitle?: string
     pillars?: Array<{ title: string; icon?: string }>
@@ -67,6 +68,7 @@ export interface AboutPageData {
     symbolTitle?: string
     symbolDesc?: string
     symbolIcon?: string
+    symbolVideo?: string
     closingText?: string
     bgColor?: string
   }
@@ -89,26 +91,7 @@ export interface AboutPageData {
   }
 }
 
-function resolveMediaUrl(url?: string, defaultFallback: string = ''): string {
-  if (!url) return defaultFallback
-  const lower = url.toLowerCase()
-  if (lower.includes('kien-tao')) return '/images/company/kien-tao.svg'
-  if (lower.includes('hieu-qua')) return '/images/company/hieu-qua.webp'
-  if (lower.includes('dong-hanh')) return '/images/company/dong-hanh.svg'
-  if (lower.includes('illustation')) return '/images/illustation.svg'
-  if (lower.includes('teanis_horizontal') || lower.includes('cropped-teanis')) return '/images/Teanis_horizontal.svg'
-  if (lower.includes('sound') || lower.includes('.mp3')) return '/audio/sound.mp3'
-  if (lower.includes('1-shape')) return '/images/company/1-shape.webp'
-  if (lower.includes('card-bg-shape')) return '/images/company/card-bg-shape.webp'
-  if (lower.includes('card-border-frame')) return '/images/company/card-border-frame.webp'
-  if (lower.includes('video-poster')) return '/images/company/video-poster.webp'
-  if (lower.includes('teanis-brand-logo') || lower.includes('group.svg')) return '/images/philosophy/teanis-brand-logo.svg'
-  if (lower.includes('monogram-symbol')) return '/images/philosophy/monogram-symbol.svg'
-  if (lower.includes('vision-eye') || lower.includes('vision')) return '/images/values/vision-eye.svg'
-  if (lower.includes('mission-target') || lower.includes('mission')) return '/images/values/mission-target.svg'
-  if (lower.includes('rectangle-8')) return '/images/screenshot.webp'
-  return url
-}
+import { cleanAcfData } from '../utils/wpClean'
 
 export const useAboutPage = () => {
   const { query } = useWpApi()
@@ -176,6 +159,7 @@ export const useAboutPage = () => {
             philStoryText
             philSymbolTitle
             philSymbolDesc
+            philSymbolVideo { node { mediaItemUrl sourceUrl } }
             philSymbolIcon { node { sourceUrl } }
             philClosingText
             ctaBgColor
@@ -207,9 +191,10 @@ export const useAboutPage = () => {
       res = await query<{ page?: { title?: string; aboutPageFields?: any; seo?: any } }>(pageQuery, { id: '/' })
     }
 
-    const f = res?.page?.aboutPageFields
+    const raw = res?.page?.aboutPageFields
     const s = res?.page?.seo
-    if (!f) return {}
+    if (!raw) return {}
+    const f = cleanAcfData(raw)
 
     return {
       hero: {
@@ -218,34 +203,32 @@ export const useAboutPage = () => {
         description: f.heroDescription || '',
         ctaText: f.heroCtaText || '',
         ctaLink: f.heroCtaLink || '',
-        illustration: resolveMediaUrl(f.heroIllustration?.node?.sourceUrl, '/images/illustation.svg'),
+        illustration: f.heroIllustration || '/images/illustation.svg',
         bgColor: f.heroBgColor || '',
-        bgImage: resolveMediaUrl(f.heroBgImage?.node?.sourceUrl)
+        bgImage: f.heroBgImage || ''
       },
-      hashtags: f.hashtagItems?.map((item: any) => item.text).filter(Boolean) || [],
+      hashtags: Array.isArray(f.hashtagItems) ? f.hashtagItems : [],
       company: {
         subtitle: f.companySubtitle || '',
         title: f.companyTitle || '',
         phonetic: f.companyPhonetic || '',
-        audioUrl: resolveMediaUrl(f.companyAudioFile?.node?.mediaItemUrl || f.companyAudioFile?.node?.sourceUrl, '/audio/sound.mp3'),
+        audioUrl: f.companyAudioFile || '/audio/sound.mp3',
         name: f.companyName || '',
+        companyName: f.companyName || '',
         description: f.companyDescription || '',
         pillarsTitle: f.companyPillarsTitle || '',
-        pillars: f.companyPillars?.map((p: any, idx: number) => ({
-          title: p.title,
-          icon: resolveMediaUrl(p.icon?.node?.sourceUrl, idx === 0 ? '/images/company/kien-tao.svg' : idx === 1 ? '/images/company/hieu-qua.webp' : '/images/company/dong-hanh.svg')
-        })) || [],
+        pillars: f.companyPillars || [],
         commitmentsTitle: f.companyCommitmentsTitle || '',
-        commitments: f.companyCommitments?.map((c: any) => c.text).filter(Boolean) || [],
+        commitments: Array.isArray(f.companyCommitments) ? f.companyCommitments : [],
         profileNote: f.companyProfileNote || '',
         yearsExp: f.companyYearsExp ?? undefined,
         expLabel: f.companyExpLabel || '',
-        videoPoster: resolveMediaUrl(f.companyVideoPoster?.node?.sourceUrl, '/images/company/video-poster.webp'),
+        videoPoster: f.companyVideoPoster || '/images/company/video-poster.webp',
         videoUrl: f.companyVideoUrl || '',
         ctaText: f.companyCtaText || '',
         ctaLink: f.companyCtaLink || '',
         bgColor: f.companyBgColor || '',
-        bgImage: resolveMediaUrl(f.companyBgImage?.node?.sourceUrl)
+        bgImage: f.companyBgImage || ''
       },
       metrics: f.metricsList || [],
       metricsBgColor: f.metricsBgColor || '',
@@ -253,12 +236,7 @@ export const useAboutPage = () => {
         subtitle: f.timelineSubtitle || '',
         title: f.timelineTitle || '',
         description: f.timelineDescription || '',
-        items: f.timelineItems?.map((t: any) => ({
-          year: t.year,
-          title: t.title,
-          desc: t.desc,
-          icon: resolveMediaUrl(t.icon?.node?.sourceUrl)
-        })) || [],
+        items: f.timelineItems || [],
         bgColor: f.timelineBgColor || ''
       },
       visionMission: {
@@ -267,10 +245,10 @@ export const useAboutPage = () => {
         description: f.vmDescription || '',
         visionTitle: f.visionTitle || '',
         visionText: f.visionText || '',
-        visionIcon: resolveMediaUrl(f.visionIcon?.node?.sourceUrl, '/images/values/vision-eye.svg'),
+        visionIcon: f.visionIcon || '/images/values/vision-eye.svg',
         missionTitle: f.missionTitle || '',
-        missionItems: f.missionItems?.map((m: any) => m.text).filter(Boolean) || [],
-        missionIcon: resolveMediaUrl(f.missionIcon?.node?.sourceUrl, '/images/values/mission-target.svg'),
+        missionItems: Array.isArray(f.missionItems) ? f.missionItems : [],
+        missionIcon: f.missionIcon || '/images/values/mission-target.svg',
         bgColor: f.vmBgColor || ''
       },
       coreValues: {
@@ -283,16 +261,17 @@ export const useAboutPage = () => {
         subtitle: f.philSubtitle || '',
         title: f.philTitle || '',
         intro: f.philIntro || '',
-        brandLogo: resolveMediaUrl(f.philBrandLogo?.node?.sourceUrl, '/images/philosophy/teanis-brand-logo.svg'),
+        brandLogo: f.philBrandLogo || '/images/philosophy/teanis-brand-logo.svg',
         storyText: f.philStoryText || '',
         symbolTitle: f.philSymbolTitle || '',
         symbolDesc: f.philSymbolDesc || '',
-        symbolIcon: resolveMediaUrl(f.philSymbolIcon?.node?.sourceUrl, '/images/philosophy/monogram-symbol.svg'),
+        symbolVideo: f.philSymbolVideo || '',
+        symbolIcon: f.philSymbolIcon || '/images/philosophy/monogram-symbol.svg',
         closingText: f.philClosingText || '',
         bgColor: f.philBgColor || ''
       },
       preFooterCta: {
-        illustration: resolveMediaUrl(f.ctaIllustration?.node?.sourceUrl, '/images/illustation.svg'),
+        illustration: f.ctaIllustration || '/images/footer/cta-frame.svg',
         heading: f.ctaHeading || '',
         subheading: f.ctaSubheading || '',
         buttonText: f.ctaButtonText || '',

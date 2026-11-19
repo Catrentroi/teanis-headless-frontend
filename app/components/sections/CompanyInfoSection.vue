@@ -84,6 +84,20 @@ const embedUrl = computed(() => {
 
   return rawUrl
 })
+
+const defaultPillars = [
+  { title: 'KIẾN TẠO', icon: '/images/company/kien-tao.svg' },
+  { title: 'HIỆU QUẢ', icon: '/images/company/hieu-qua.webp' },
+  { title: 'ĐỒNG HÀNH', icon: '/images/company/dong-hanh.svg' }
+]
+const displayPillars = computed(() => (props.pillars && props.pillars.length > 0 ? props.pillars : defaultPillars))
+
+const defaultCommitments = [
+  'Tạo ra các sản phẩm công nghệ sáng tạo mang lại giá trị cho cộng đồng.',
+  'Cung cấp giải pháp công nghệ hiệu quả cho đối tác và khách hàng.',
+  'Đồng hành để cùng nhau mở ra cơ hội bứt phá kinh doanh trong kỷ nguyên số.'
+]
+const displayCommitments = computed(() => (props.commitments && props.commitments.length > 0 ? props.commitments : defaultCommitments))
 </script>
 
 <template>
@@ -105,7 +119,7 @@ const embedUrl = computed(() => {
         <div>
           <img src="/images/company/dot.svg" alt="dot" class="w-full h-full">
         </div>
-        <span class="text-ds-24 font-bold text-[#141414] tracking-wide">
+        <span class="text-ds-24 font-bold text-[#141414]">
           {{ subtitle || 'Về chúng tôi' }}
         </span>
       </div>
@@ -118,12 +132,12 @@ const embedUrl = computed(() => {
 
           <!-- Brand Title & Phonetic (Figma node 1:668) -->
           <div class="flex flex-col gap-[12px]">
-            <h2 class="text-2xl sm:text-3xl lg:text-ds-36 font-medium text-[#141414] tracking-tight">
+            <h2 class="text-2xl sm:text-3xl lg:text-ds-36 font-medium text-[#141414]">
               <span class="text-[#00d1bc]">Teanis</span> Technologies
             </h2>
 
             <div class="flex items-center gap-2.5 text-ds-18 text-[#141414]">
-              <span>{{ phonetic || 'Teanis phát âm "ti-a-nis".' }}</span>
+              <span> Teanis phát âm <span class="text-[#00d1bc]">“ti-a-nis”</span>.</span>
               <button
                 type="button"
                 class="w-6 h-6 inline-flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
@@ -148,8 +162,7 @@ const embedUrl = computed(() => {
 
             <div class="flex flex-wrap items-center gap-6 lg:gap-10 pt-1">
               <div
-                v-if="pillars && pillars.length > 0"
-                v-for="(pillar, idx) in pillars"
+                v-for="(pillar, idx) in displayPillars"
                 :key="pillar.title || idx"
                 class="flex items-center gap-3"
               >
@@ -157,27 +170,11 @@ const embedUrl = computed(() => {
                   :src="pillar.icon || (idx === 0 ? '/images/company/kien-tao.svg' : idx === 1 ? '/images/company/hieu-qua.webp' : '/images/company/dong-hanh.svg')"
                   :alt="pillar.title"
                   class="w-10 h-10 object-contain shrink-0"
-                  @error="(e: any) => { e.target.src = idx === 0 ? '/images/company/kien-tao.svg' : idx === 1 ? '/images/company/hieu-qua.webp' : '/images/company/dong-hanh.svg' }"
                 />
                 <span class="text-ds-18 font-medium text-[#141414] whitespace-nowrap">
                   {{ pillar.title }}
                 </span>
               </div>
-              <!-- Default 3 pillars if empty -->
-              <template v-else>
-                <div class="flex items-center gap-3">
-                  <img src="/images/company/kien-tao.svg" alt="Kiến tạo" class="w-10 h-10 object-contain shrink-0" />
-                  <span class="text-ds-18 font-medium text-[#141414]">KIẾN TẠO</span>
-                </div>
-                <div class="flex items-center gap-3">
-                  <img src="/images/company/hieu-qua.webp" alt="Hiệu quả" class="w-10 h-10 object-contain shrink-0" />
-                  <span class="text-ds-18 font-medium text-[#141414]">HIỆU QUẢ</span>
-                </div>
-                <div class="flex items-center gap-3">
-                  <img src="/images/company/dong-hanh.svg" alt="Đồng hành" class="w-10 h-10 object-contain shrink-0" />
-                  <span class="text-ds-18 font-medium text-[#141414]">ĐỒNG HÀNH</span>
-                </div>
-              </template>
             </div>
           </div>
 
@@ -188,30 +185,14 @@ const embedUrl = computed(() => {
             </p>
 
             <ul class="flex flex-col gap-3 pl-1">
-              <template v-if="commitments && commitments.length > 0">
-                <li
-                  v-for="item in commitments"
-                  :key="item"
-                  class="flex items-start gap-3 text-[#141414] text-ds-18 font-normal"
-                >
-                  <span class="mt-2.5 w-1.5 h-1.5 rounded-full bg-[#141414] shrink-0" />
-                  <span>{{ item }}</span>
-                </li>
-              </template>
-              <template v-else>
-                <li class="flex items-start gap-3 text-[#141414] text-ds-18 font-normal">
-                  <span class="mt-2.5 w-1.5 h-1.5 rounded-full bg-[#141414] shrink-0" />
-                  <span>Tạo ra các sản phẩm công nghệ sáng tạo mang lại giá trị cho cộng đồng.</span>
-                </li>
-                <li class="flex items-start gap-3 text-[#141414] text-ds-18 font-normal">
-                  <span class="mt-2.5 w-1.5 h-1.5 rounded-full bg-[#141414] shrink-0" />
-                  <span>Cung cấp giải pháp công nghệ hiệu quả cho đối tác và khách hàng.</span>
-                </li>
-                <li class="flex items-start gap-3 text-[#141414] text-ds-18 font-normal">
-                  <span class="mt-2.5 w-1.5 h-1.5 rounded-full bg-[#141414] shrink-0" />
-                  <span>Đồng hành để cùng nhau mở ra cơ hội bứt phá kinh doanh trong kỷ nguyên số.</span>
-                </li>
-              </template>
+              <li
+                v-for="item in displayCommitments"
+                :key="item"
+                class="flex items-start gap-3 text-[#141414] text-ds-18 font-normal"
+              >
+                <span class="mt-2.5 w-1.5 h-1.5 rounded-full bg-[#141414] shrink-0" />
+                <span>{{ item }}</span>
+              </li>
             </ul>
           </div>
         </div>

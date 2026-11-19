@@ -16,6 +16,7 @@ interface Props {
   symbolTitle?: string
   symbolDesc?: string
   symbolIcon?: string
+  symbolVideo?: string
   closingText?: string
   bgColor?: string
 }
@@ -411,11 +412,11 @@ onUnmounted(() => {
 <template>
   <section
     id="brand-philosophy"
-    class="py-20 lg:pt-32 lg:pb-[60px] relative overflow-hidden transition-colors duration-300"
+    class="py-20 lg:pt-32 lg:pb-[60px] relative overflow-visible transition-colors duration-300"
     :style="{ backgroundColor: bgColor || '#FFFFFF' }"
   >
     <!-- Background Layers (Thứ tự Figma: Frame1 -> Vector -> Union -> Frame) -->
-    <div class="absolute inset-0 pointer-events-none select-none overflow-hidden z-0">
+    <div class="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden">
       <!-- 1. Frame1: Top luminosity texture / wave (1920x1339) -->
       <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1920px] max-w-none h-[1339px] pointer-events-none">
         <img
@@ -454,19 +455,22 @@ onUnmounted(() => {
       <div class="hidden md:block absolute left-[calc(50%+480px)] bottom-[980px] lg:bottom-[1060px] w-[340px] lg:w-[408px] h-auto pointer-events-none">
         <img src="/images/philosophy/Union-3.svg" alt="Teanis geometric shape" class="w-full h-auto object-contain" />
       </div>
+    </div>
 
-      <!-- 4. Frame: Các cột rounded rectangle dưới đáy (1860x1242) -->
-      <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1860px] max-w-none h-[1242px] pointer-events-none">
-        <img
-          src="/images/philosophy/Frame.svg"
-          alt="Rounded pillars decorative background"
-          class="w-full h-full object-contain object-bottom opacity-35"
-        />
-      </div>
-
-      <!-- Dải Gradient nền ngọc bích ở đáy -->
-      <div
-        class="absolute bottom-0 left-0 right-0 h-[600px] lg:h-[1000px] bg-gradient-to-b from-transparent via-[#83f3e9]/10 to-[#83f3e9]/40 pointer-events-none"
+    <!-- Nền đáy Figma (mốc = đáy section): Frame 1:918 từ -1317 đến -75px, gradient 1:938 từ -614 đến +566px (tràn xuống Pre-Footer) -->
+    <div
+      class="absolute inset-x-0 bottom-[-566px] h-[1883px] z-0 overflow-hidden pointer-events-none select-none"
+      aria-hidden="true"
+    >
+      <img
+        src="/images/philosophy/Frame.svg"
+        alt=""
+        class="absolute top-0 left-1/2 -translate-x-1/2 w-[1860px] h-[1242px] max-w-none"
+      />
+      <img
+        src="/images/philosophy/overlay-gradient.png"
+        alt=""
+        class="absolute top-[703px] left-1/2 -translate-x-1/2 w-[1920px] h-[1180px] max-w-none"
       />
     </div>
 
@@ -725,15 +729,27 @@ onUnmounted(() => {
 
       <!-- Khối Monogram & Hệ giá trị -->
       <div
-        v-if="symbolIcon || symbolTitle || symbolDesc"
+        v-if="symbolVideo || symbolIcon || symbolTitle || symbolDesc"
         class="max-w-[1300px] mx-auto flex flex-col lg:flex-row gap-10 lg:gap-16 xl:gap-[116px] items-center justify-between py-12 lg:py-[100px] lg:mb-5"
       >
         <!-- Khối hộp icon Monogram (Trái) -->
         <div
-          v-if="symbolIcon"
-          class="bg-[#b0f3eb] rounded-[32px] sm:rounded-[40px] size-[280px] sm:size-[380px] lg:size-[460px] xl:size-[500px] shrink-0 flex items-center justify-center p-8 select-none"
+          v-if="symbolVideo || symbolIcon"
+          class="bg-[#b0f3eb] rounded-[32px] sm:rounded-[40px] size-[280px] sm:size-[380px] lg:size-[460px] xl:size-[500px] shrink-0 flex items-center justify-center p-8 select-none overflow-hidden"
         >
+          <video
+            v-if="symbolVideo"
+            :src="symbolVideo"
+            :poster="symbolIcon || undefined"
+            class="w-full h-full max-w-[300px] max-h-[444px] object-contain"
+            autoplay
+            loop
+            muted
+            playsinline
+            disablepictureinpicture
+          />
           <img
+            v-else
             :src="symbolIcon"
             alt="Monogram Symbol"
             class="w-full h-full max-w-[300px] max-h-[444px] object-contain"
@@ -767,8 +783,8 @@ onUnmounted(() => {
 
       <!-- Slogan kết luận cố định bằng code từ local -->
       <div class="py-8 lg:py-14 text-center select-none">
-        <p class="text-4xl sm:text-6xl lg:text-ds-82 font-bold tracking-tight uppercase">
-          <span class="text-[#141414]">SHAPE UP FOR GROWTH</span>
+        <p class="text-4xl sm:text-6xl lg:text-ds-82 font-normal uppercase">
+          <span class="text-[#141414]">SHAPE UP FOR <span class="text-[#00D1BC]">GROWTH</span></span>
         </p>
       </div>
 

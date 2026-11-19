@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import gsap from 'gsap'
 
 interface Props {
@@ -15,6 +15,9 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+const sectionRef = ref<HTMLElement | null>(null)
+let ctx: gsap.Context | null = null
 
 // Format title into 2 lines with white highlight on "GROWTH" matching Figma node 1:2539
 const titleLines = computed(() => {
@@ -48,13 +51,21 @@ const titleLines = computed(() => {
 })
 
 onMounted(() => {
-  gsap.from('.hero-content', { opacity: 0, y: 30, duration: 0.8, ease: 'power2.out' })
-  gsap.from('.hero-illustration', { opacity: 0, x: 40, duration: 1, delay: 0.2, ease: 'power2.out' })
+  if (!sectionRef.value) return
+  ctx = gsap.context(() => {
+    gsap.from('.hero-content', { opacity: 0, y: 30, duration: 0.8, ease: 'power2.out' })
+    gsap.from('.hero-illustration', { opacity: 0, x: 40, duration: 1, delay: 0.2, ease: 'power2.out' })
+  }, sectionRef.value)
+})
+
+onUnmounted(() => {
+  ctx?.revert()
 })
 </script>
 
 <template>
   <section
+    ref="sectionRef"
     class="relative overflow-hidden flex flex-col justify-between pt-[130px] sm:pt-[150px] lg:pt-[170px]"
     :style="{
       backgroundColor: bgColor || (!bgImage ? '#20e9d6' : undefined),
@@ -66,7 +77,7 @@ onMounted(() => {
   >
     <!-- Background "Tech" vector watermark matching Figma node 1:2472 -->
     <div
-      class="absolute right-[-20px] bottom-[80px] lg:bottom-[90px] select-none pointer-events-none opacity-20 font-black text-[200px] sm:text-[280px] lg:text-[360px] text-white leading-none tracking-tight pr-6"
+      class="absolute right-[-20px] bottom-[80px] lg:bottom-[90px] select-none pointer-events-none opacity-20 font-black text-[200px] sm:text-[280px] lg:text-[360px] text-white leading-none pr-6"
     >
       Tech
     </div>
@@ -85,7 +96,7 @@ onMounted(() => {
           </span>
         </div>
 
-        <h1 v-if="title" class="font-bold text-5xl sm:text-6xl lg:text-[74px] xl:text-ds-82 uppercase tracking-tight text-[#141414]">
+        <h1 v-if="title" class="font-bold text-5xl sm:text-6xl lg:text-[74px] xl:text-ds-82 uppercase text-[#141414]">
           <template v-if="titleLines">
             <span class="block">{{ titleLines.line1 }}</span>
             <span class="block">

@@ -37,6 +37,28 @@ async function handleSubmit() {
     isSubmitting.value = false
   }
 }
+
+const contactChannels = [
+  {
+    type: 'website',
+    label: 'Website',
+    value: 'www.teanis.com',
+    href: 'https://teanis.com',
+    target: '_blank'
+  },
+  {
+    type: 'email',
+    label: 'Email',
+    value: 'contact@teanis.com',
+    href: 'mailto:contact@teanis.com'
+  },
+  {
+    type: 'phone',
+    label: 'Hotline',
+    value: '028 6251 5775',
+    href: 'tel:02862515775'
+  }
+]
 </script>
 
 <template>
@@ -226,42 +248,28 @@ async function handleSubmit() {
 
           <!-- Contact items row (3 columns) matching Figma target -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 relative z-10">
-            <!-- Website -->
-            <a href="https://teanis.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3.5 group">
+            <a
+              v-for="c in contactChannels"
+              :key="c.label"
+              :href="c.href"
+              :target="c.target"
+              :rel="c.target ? 'noopener noreferrer' : undefined"
+              class="flex items-center gap-3.5 group"
+            >
               <div class="size-11 sm:size-12 rounded-[10px] bg-[#f97c00] flex items-center justify-center shrink-0 shadow-sm text-white group-hover:scale-105 transition-transform">
-                <svg class="size-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg v-if="c.type === 'website'" class="size-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
                 </svg>
-              </div>
-              <div class="flex flex-col">
-                <span class="text-xs text-[#141414]/70 font-medium">Website</span>
-                <span class="text-ds-16 sm:text-ds-18 font-bold text-[#141414] group-hover:text-[#0709a2] transition-colors">www.teanis.com</span>
-              </div>
-            </a>
-
-            <!-- Email -->
-            <a href="mailto:contact@teanis.com" class="flex items-center gap-3.5 group">
-              <div class="size-11 sm:size-12 rounded-[10px] bg-[#f97c00] flex items-center justify-center shrink-0 shadow-sm text-white group-hover:scale-105 transition-transform">
-                <svg class="size-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg v-else-if="c.type === 'email'" class="size-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                 </svg>
-              </div>
-              <div class="flex flex-col">
-                <span class="text-xs text-[#141414]/70 font-medium">Email</span>
-                <span class="text-ds-16 sm:text-ds-18 font-bold text-[#141414] group-hover:text-[#0709a2] transition-colors">contact@teanis.com</span>
-              </div>
-            </a>
-
-            <!-- Hotline -->
-            <a href="tel:02862515775" class="flex items-center gap-3.5 group">
-              <div class="size-11 sm:size-12 rounded-[10px] bg-[#f97c00] flex items-center justify-center shrink-0 shadow-sm text-white group-hover:scale-105 transition-transform">
-                <svg class="size-6" fill="currentColor" viewBox="0 0 24 24">
+                <svg v-else class="size-6" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
                 </svg>
               </div>
               <div class="flex flex-col">
-                <span class="text-xs text-[#141414]/70 font-medium">Hotline</span>
-                <span class="text-ds-16 sm:text-ds-18 font-bold text-[#141414] group-hover:text-[#0709a2] transition-colors">028 6251 5775</span>
+                <span class="text-xs text-[#141414]/70 font-medium">{{ c.label }}</span>
+                <span class="text-ds-16 sm:text-ds-18 font-bold text-[#141414] group-hover:text-[#0709a2] transition-colors">{{ c.value }}</span>
               </div>
             </a>
           </div>

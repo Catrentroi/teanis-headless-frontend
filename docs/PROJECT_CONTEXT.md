@@ -238,68 +238,21 @@ landing-nuxt/
 - Pre-footer layout so node `1:1017` với screenshot live.
 - Pass 3: grep còn `text-[Npx]` / `leading-[` không cần thiết.
 
-### Phiên làm việc: 17/11/2026
+*(Lịch sử các phiên làm việc chi tiết trước ngày 19/11/2026 đã được lưu trữ tại [docs/archive/WORK_LOG_2026_11.md](file:///d:/wordpress/headless/landing-nuxt/docs/archive/WORK_LOG_2026_11.md)).*
 
-#### 1. Visual & Typography Polish (Phase 1)
-- **VisionMissionSection**: Chuẩn hóa semantic: badge 24px (`subtitle`), tiêu đề 36px (`title`), lời dẫn (`vm_description`); thêm field ACF và sync WP.
-- **CTA Profile & Icon standardization**: Link Google Slides presentation với `target="_blank"`, chuẩn hóa CTA button và icon box 42×42px trên Header, Hero, PreFooter.
-- **Design Tokens**: Rà soát và áp dụng design tokens `text-ds-*` từ `figma-tokens.css`.
-
-#### 2. SEO On-page & Yoast WPGraphQL (Phase 2)
-- **Yoast SEO Integration**: Tích hợp `wordpress-seo` + `add-wpgraphql-seo`, tự động lấy SEO title, description, schema `@graph`, và rewrite domain CMS sang Frontend `siteUrl`.
-- **Dynamic Site Icon / Favicon**: Bổ sung GraphQL field resolver `siteIconUrl` từ WordPress Core Options, đồng bộ favicon động toàn trang trong `app.vue`.
-- **Audit SEOquake**: Khắc phục 14 ảnh thiếu thẻ ALT trong các section và footer; cập nhật Sitemap và Robots trong `nuxt.config.ts`.
-- **Dọn dẹp ACF thừa**: Xóa các field SEO thủ công trong ACF để tránh dư thừa và xung đột với Yoast.
-
-#### 3. Media Optimization & Trang Liên Hệ Contact (Phase 3)
-- **Nén ảnh sang WebP**: Chuyển đổi 100% hình ảnh component sang WebP, nén `video-poster` từ 1.31 MB xuống 63.5 KB (giảm 95%), dọn sạch 1.35 MB file PNG cũ.
-- **ACF Location Rules**: Cập nhật rule giới hạn 78 field landing page chỉ hiển thị trên Front Page (`isFrontPage: true`), tách biệt với trang Contact và các Pages khác.
-- **Trang Contact (`/contact`)**: Xây dựng hoàn chỉnh [app/pages/contact.vue](file:///d:/wordpress/headless/landing-nuxt/app/pages/contact.vue) khớp chuẩn mockup:
-  - Top mint banner với watermark "GET IN TOUCH" và họa tiết góc phải.
-  - Form 2 khối: Nhu cầu & dropdown lĩnh vực + Thông tin 4 ô (Email, Họ tên, SĐT, Tên công ty) + nút "Gửi tin nhắn ↗".
-  - Google Maps nhúng full-width định vị trụ sở Teanis Technologies (Thạnh Mỹ Lợi, TP. Thủ Đức).
-  - Thẻ nổi "Follow us" chuẩn Figma Target: Định vị chồng biên giữa Map và Footer (loại bỏ dải trắng thừa), bố cục "Follow us" phía trên và 3 cột (Website, Email, Hotline) dàn đều phía dưới, kết hợp họa tiết sóng lượn mờ (organic wave overlay).
-- **Hệ Thống Contact Form Chuẩn Headless (Nuxt Nitro + WP-Admin Leads)**:
-  - Triển khai endpoint `/api/contact.post.ts` trên Nuxt Nitro có tích hợp Honeypot anti-spam.
-  - Đăng ký Custom Post Type `contact_submission` ("Khách hàng liên hệ") cùng bảng quản trị trực quan và Meta Box chi tiết trong WordPress `wp-admin`.
-  - Kết nối bảo mật Server-to-Server qua WordPress REST API nội bộ với secret key (`X-Headless-Secret`).
-  - Cấu hình biến môi trường `CONTACT_RECEIVE_EMAIL` linh hoạt trong `.env`.
-- **Navigation & Routing**: Header CTA và PreFooter CTA điều hướng trực tiếp sang `/contact`; thêm `/contact` vào sitemap.
-- **SSR Build**: `npm run build` verify pass 100% không lỗi.
+### Phiên làm việc gần nhất (19/11/2026) - Rolling Window
+- **Chuẩn hóa Golden Blueprints**: Thiết lập [docs/DESIGN_PATTERNS.md](file:///d:/wordpress/headless/landing-nuxt/docs/DESIGN_PATTERNS.md) (Section GSAP SSR-Safe, WPGraphQL cleaner, Node UTF-8 sync script).
+- **Zero-Boilerplate Data Binding**: Thay thế toàn bộ props thủ công tại `index.vue` và `about.vue` bằng cú pháp `v-bind="pageData.sectionName"` (giảm hơn 80% số dòng code trang).
+- **Composable SEO 1 Dòng Lệnh**: Gom 70 dòng Yoast SEO / Schema / Canonical vào `usePageSeo()`.
+- **Zero-CORS GraphQL Proxy**: Triển khai `server/api/graphql.post.ts` chuyển tiếp query từ browser sang WP, triệt tiêu 100% nguy cơ CORS khi deploy Vercel + Pantheon.
+- **Dọn dẹp Section Bloat**: Refactor `CoreValuesSection.vue` (193 -> 93 dòng qua `v-for`) và `CompanyInfoSection.vue` (430 -> 367 dòng, xóa fallback template trùng lặp).
 
 ---
 
-## 7. Mục Tiêu Triển Khai Thực Tế (Phân Kỳ Theo Ưu Tiên)
-
-*(Các hạng mục nâng cao dành cho môi trường Production như Draft Preview, Revalidate Webhook... đã được tách và lưu trữ riêng tại [docs/archive/FUTURE_PRODUCTION_ROADMAP.md](file:///d:/wordpress/headless/landing-nuxt/docs/archive/FUTURE_PRODUCTION_ROADMAP.md)).*
-
-### Phase 1: Hoàn Thiện Visual & Pixel Polish (Hoàn thành)
-- [x] **Vision & Mission Section**: Tách tiêu đề section (`title` 36px, centered), nhãn dot (`subtitle` 24px) và lời dẫn (`vm_description` 18px), đồng bộ ACF và Nuxt schema.
-- [x] **Pre-footer CTA & Header Buttons**: Chuẩn hóa kích thước CTA button và icon box 42x42px (Figma `_buttonLP/primary`) đồng bộ trên Header, Hero và PreFooter.
-- [x] **Typography & Token Polish**: Toàn bộ heading và body text đã được đối soát, map sạch sẽ sang design tokens (`text-ds-16` đến `text-ds-82`). Bản build test SSR hoàn toàn pass không lỗi.
-
-### Phase 2: SEO On-page & Structured Data (Hoàn thành theo chuẩn Yoast SEO)
-- [x] **Tích hợp Yoast SEO + WPGraphQL**: Đã kết nối trực tiếp với plugin `wordpress-seo` và `add-wpgraphql-seo`. Toàn bộ dữ liệu SEO (SEO Title, Meta Description, OpenGraph, Canonical, và JSON-LD Schema `@graph`) được lấy tự động 100% từ Yoast SEO trên WordPress.
-- [x] **Tự động Rewrite Domain CMS -> FE**: Schema raw và Canonical URL từ Yoast được tự động chuyển đổi từ `headless-landing.local` sang domain Frontend (`siteUrl`).
-- [x] **Dọn dẹp ACF thừa**: Đã gỡ bỏ toàn bộ các field SEO tự tạo trong ACF để tránh trùng lặp dữ liệu, giữ CMS gọn gàng, chuẩn headless.
-- [x] **Favicon đồng bộ từ WordPress Site Icon**: Expose `siteIconUrl` từ WordPress Core Options sang WPGraphQL; Nuxt tự động lấy ảnh Site Icon đã crop trên WordPress (`cropped-Teanis_horizontal.png`) làm favicon động toàn trang.
-- [x] **Sitemap & Robots & Fix 14 ALT Images**: Khắc phục triệt để lỗi thiếu ALT trên 14 ảnh theo audit SEOquake, cấu hình robots.txt và sitemap routes chuẩn hóa. Build SSR pass 100%.
-
-### Phase 3: Tối Ưu Hiệu Năng & Bàn Giao
-- [x] **Tối ưu Media & Asset (Page Size reduction)**:
-  - Chuyển đổi toàn bộ component sang sử dụng 100% định dạng `.webp` (`sound-icon.webp`, `hieu-qua.webp`, `play-icon.webp`, `card-bg-shape.webp`, `card-border-frame.webp`, `circle-arrows.webp`, các card S-F-P-B `card-s.webp`, `card-f.webp`, `card-p.webp`, `card-b.webp`).
-  - Đã xóa sạch 1.35 MB các file `.png` cũ không dùng trong `public/images/`.
-  - Nén ảnh nặng nhất trang (`video-poster.png` 1.31 MB) sang chuẩn WebP (`video-poster.webp` chỉ còn 63.5 KB — giảm tới **95% dung lượng**).
-  - Tối ưu đóng gói JS bundle: Đồng bộ cơ chế import GSAP, loại bỏ hoàn toàn cảnh báo `INEFFECTIVE_DYNAMIC_IMPORT` giữa các chunk client.
-- [x] **Trang Liên hệ (`/contact`) & Bản Đồ Google Maps Pixel-Perfect**:
-  - Xây dựng hoàn chỉnh [app/pages/contact.vue](file:///d:/wordpress/headless/landing-nuxt/app/pages/contact.vue) khớp chuẩn design Figma mockup:
-    - Banner watermark mint cyan "GET IN TOUCH" với chi tiết hoa văn góc phải.
-    - Typography tiêu đề 2 dòng: "HÃY CHO CHÚNG TÔI BIẾT CHÚNG TÔI CÓ / THỂ GIÚP GÌ!" phối màu đen - xanh cyan chuẩn xác.
-    - Form 2 khối: Khối 1 nhu cầu & lĩnh vực dropdown, Khối 2 thông tin liên hệ 4 ô (Email, Họ tên, SĐT, Tên công ty) + CTA "Gửi tin nhắn ↗".
-    - Nhúng Google Maps toàn chiều rộng định vị chính xác trụ sở Teanis Technologies (Thạnh Mỹ Lợi, TP. Thủ Đức).
-    - Thẻ "Follow us" 2 tông màu nổi bật chồng lớp map: chứa thông tin Website, Email, Hotline kèm icon cam bo tròn.
-  - Cập nhật header navigation và sitemap route tự động nhận diện `/contact`. Build SSR thành công 100%.
-- [x] **Bàn Giao Dự Án**: Cấu trúc code, schema GraphQL, token typography, SEO và hiệu năng đạt chuẩn theo Plan kỹ thuật Headless WP.
+## 7. Trạng Thái Dự Án & Các Giai Đoạn Tiếp Theo
+- Toàn bộ Phase 1, 2, 3 (Giao diện, Visual Polish, SEO Yoast, Hiệu năng WebP, Trang Contact) đã **hoàn thành 100%**.
+- Các hạng mục mở rộng tương lai (Draft Preview, On-demand Revalidation Webhook) được theo dõi tại [docs/archive/FUTURE_PRODUCTION_ROADMAP.md](file:///d:/wordpress/headless/landing-nuxt/docs/archive/FUTURE_PRODUCTION_ROADMAP.md).
+- Chi tiết lịch sử các phase: xem tại [docs/archive/WORK_LOG_2026_11.md](file:///d:/wordpress/headless/landing-nuxt/docs/archive/WORK_LOG_2026_11.md).
 
 
 
