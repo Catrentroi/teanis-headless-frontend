@@ -110,7 +110,6 @@ export default defineNuxtConfig({
   routeRules: {
     '/': { isr: 3600 },
     '/**': { isr: 3600 },
-    '/api/media': { cache: false },
-    '/api/**': { cors: false }
+    '/api/**': { cache: false, isr: false }
   }
 })

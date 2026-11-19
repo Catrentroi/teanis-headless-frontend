@@ -24,7 +24,9 @@ export default defineEventHandler(async (event) => {
   }
 
   // 3. Đồng bộ lưu vào WordPress Custom Post Type qua REST API
-  const wpApiUrl = ((config.wpApiUrl as string) || (config.public as any)?.wpApiUrl || 'http://headless-landing.local/wp-json').replace(/\/$/, '')
+  const graphqlUrl = (config.wpGraphqlUrl as string) || ''
+  const inferredApiUrl = graphqlUrl ? graphqlUrl.replace(/\/graphql\/?$/, '/wp-json') : ''
+  const wpApiUrl = ((config.wpApiUrl as string) || inferredApiUrl || (config.public as any)?.wpApiUrl || 'http://headless-landing.local/wp-json').replace(/\/$/, '')
   const wpEndpoint = `${wpApiUrl}/teanis/v1/contact-submissions`
   const secret = config.wpHeadlessSecret
 
@@ -55,7 +57,10 @@ export default defineEventHandler(async (event) => {
     })
   } catch (err: any) {
     console.error('[Contact API] Failed to store in WordPress:', err?.message || err)
-    // Nếu WP lỗi vẫn tiếp tục xử lý để không chặn khách hàng, hoặc ném lỗi nếu muốn bắt buộc
+    throw createError({
+      statusCode: 502,
+      statusMessage: 'Không thể lưu vào WordPress: ' + (err?.data?.message || err?.message || 'Upstream Error')
+    })
   }
 
   // 4. Gửi email thông báo (nếu có cấu hình SMTP)
