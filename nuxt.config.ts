@@ -76,7 +76,7 @@ export default defineNuxtConfig({
   },
 
   sitemap: {
-    urls: [
+    sources: [
       '/',
       '/about',
       '/contact'
