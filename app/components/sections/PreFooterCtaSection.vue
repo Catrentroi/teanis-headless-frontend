@@ -56,7 +56,7 @@ const cardBgColor = computed(() => {
     class="relative z-10 overflow-visible bg-transparent"
   >
     <!-- Figma 1:1018: cta-frame bắt đầu 186px (trên 1920) phía trên đáy Philosophy, đè lên gradient -->
-    <div class="relative w-full leading-[0] -mt-[9.7vw]">
+    <div class="cta-wave-frame relative w-full leading-[0] -mt-[9.7vw]">
       <img
         :src="resolvedIllustration"
         alt="Teanis Business Solutions Collaboration"
@@ -70,7 +70,7 @@ const cardBgColor = computed(() => {
       class="pointer-events-none absolute bottom-0 left-0 right-0 z-20 translate-y-1/2 px-6 sm:px-8 xl:px-0"
     >
       <div
-        class="pointer-events-auto relative mx-auto flex max-w-[1400px] flex-col items-start justify-between gap-8 overflow-hidden rounded-[24px] px-6 py-8 shadow-2xl transition-colors duration-300 sm:flex-row sm:items-center sm:rounded-[32px] sm:px-12 sm:py-12 lg:gap-[56px] lg:px-[100px] lg:py-[72px] md:flex-row md:items-center"
+        class="cta-card-box pointer-events-auto relative mx-auto flex max-w-[1400px] flex-col items-start justify-between gap-8 overflow-hidden rounded-[24px] px-6 py-8 shadow-2xl transition-colors duration-300 sm:flex-row sm:items-center sm:rounded-[32px] sm:px-12 sm:py-12 lg:gap-[56px] lg:px-[100px] lg:py-[72px] md:flex-row md:items-center"
         :style="{ backgroundColor: cardBgColor }"
       >
         <div

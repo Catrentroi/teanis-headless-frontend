@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 interface Props {
   subtitle?: string
@@ -61,11 +63,54 @@ watch(isVideoOpen, (open) => {
   }
 })
 
+const sectionRef = ref<HTMLElement | null>(null)
+const videoCardRef = ref<HTMLElement | null>(null)
+let ctx: gsap.Context | null = null
+
+function onCardMouseMove(e: MouseEvent) {
+  if (!videoCardRef.value || window.innerWidth < 1024) return
+  const rect = videoCardRef.value.getBoundingClientRect()
+  const x = (e.clientX - rect.left) / rect.width - 0.5
+  const y = (e.clientY - rect.top) / rect.height - 0.5
+
+  gsap.to(videoCardRef.value, {
+    rotateY: x * 8,
+    rotateX: -y * 8,
+    transformPerspective: 1000,
+    duration: 0.4,
+    ease: 'power1.out'
+  })
+}
+
+function onCardMouseLeave() {
+  if (!videoCardRef.value) return
+  gsap.to(videoCardRef.value, { rotateY: 0, rotateX: 0, duration: 0.8, ease: 'power2.out' })
+}
+
+onMounted(() => {
+  if (!sectionRef.value) return
+  ctx = gsap.context(() => {
+    gsap.from('.info-reveal', {
+      scrollTrigger: {
+        trigger: sectionRef.value,
+        start: 'top 80%',
+        toggleActions: 'play pause resume reverse'
+      },
+      y: 35,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.1,
+      ease: 'power3.out'
+    })
+  }, sectionRef.value)
+})
+
 onUnmounted(() => {
   if (typeof document !== 'undefined') {
     document.body.style.overflow = ''
     window.removeEventListener('keydown', onKeydown)
   }
+  ctx?.revert()
 })
 
 const isDirectVideo = computed(() => {
@@ -103,6 +148,7 @@ const displayCommitments = computed(() => (props.commitments && props.commitment
 <template>
   <section
     id="company-info"
+    ref="sectionRef"
     class="py-20 lg:pt-32 lg:pb-[100px] relative overflow-hidden transition-colors duration-300"
     :style="{
       backgroundColor: bgColor || '#FFFFFF',
@@ -115,8 +161,8 @@ const displayCommitments = computed(() => (props.commitments && props.commitment
     <div class="max-w-[1400px] mx-auto px-6 sm:px-8 xl:px-0 w-full">
 
       <!-- Section Title Badge (Figma node 1:665) -->
-      <div class="flex items-center gap-2.5 mb-[36px]">
-        <div>
+      <div class="info-reveal flex items-center mb-[36px] gap-[10px]">
+        <div class="shrink-0">
           <img src="/images/company/dot.svg" alt="dot" class="w-full h-full">
         </div>
         <span class="text-ds-24 font-bold text-[#141414]">
@@ -125,83 +171,91 @@ const displayCommitments = computed(() => (props.commitments && props.commitment
       </div>
 
       <!-- 2-column layout matching Figma node 1:666 (Company Overview) -->
-      <div class="flex flex-col lg:flex-row gap-12 lg:gap-8 items-start justify-between">
+      <div class="flex flex-col lg:flex-row lg:items-center gap-12 lg:gap-[32px]">
 
-        <!-- Left Column: Details (Figma node 1:667) -->
-        <div class="flex-1 w-full lg:max-w-[684px] flex flex-col gap-8">
+        <!-- Left Column: Details (Figma node 1:667 — w: 684px, pt: 40px, pr: 40px) -->
+        <div class="w-full lg:w-[684px] lg:shrink-0 lg:pt-[40px] lg:pr-[40px]">
 
-          <!-- Brand Title & Phonetic (Figma node 1:668) -->
-          <div class="flex flex-col gap-[12px]">
-            <h2 class="text-2xl sm:text-3xl lg:text-ds-36 font-medium text-[#141414]">
+          <!-- Brand Title & Phonetic (Figma node 1:668 — mb: 40px to content) -->
+          <div class="info-reveal mb-[40px]">
+            <h2 class="text-2xl sm:text-3xl lg:text-ds-36 font-medium text-[#141414] mb-[12px]">
               <span class="text-[#00d1bc]">Teanis</span> Technologies
             </h2>
 
-            <div class="flex items-center gap-2.5 text-ds-18 text-[#141414]">
-              <span> Teanis phát âm <span class="text-[#00d1bc]">“ti-a-nis”</span>.</span>
+            <div class="flex items-center gap-[20px] text-ds-18 text-[#141414]">
+              <span>Teanis phát âm <span class="text-[#00d1bc]">“ti-a-nis”</span>.</span>
               <button
                 type="button"
-                class="w-6 h-6 inline-flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
+                class="w-8 h-8 inline-flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer shrink-0"
                 aria-label="Phát âm thương hiệu"
                 @click="playAudio"
               >
-                <img src="/images/company/sound-icon.webp" alt="Phát âm" class="w-5 h-5 object-contain" />
+                <img src="/images/company/sound-icon.webp" alt="Phát âm" class="w-6 h-6 object-contain" />
               </button>
             </div>
           </div>
 
-          <!-- Description paragraph (Figma node 1:676) -->
-          <p class="text-[#141414] text-ds-18 font-normal max-w-[562px]">
-            {{ description || 'Chúng tôi là một công ty hoạt động trong lĩnh vực công nghệ, chuyên phát triển các sản phẩm phần mềm, ứng dụng di động, giải pháp chuyển đổi số doanh nghiệp, IoT và dịch vụ outsourcing chất lượng cao.' }}
-          </p>
-
-          <!-- 3 Pillars Row with custom intro title (Figma node 1:678) -->
-          <div class="flex flex-col gap-4 max-w-[562px] mt-2">
-            <p class="text-[#141414] text-ds-18 font-normal">
-              {{ pillarsTitle || 'Tạo ra các sản phẩm công nghệ sáng tạo mang lại giá trị cho cộng đồng, khách hàng với phương châm chính:' }}
+          <!-- Content Container (Figma node 1:675 — pr: 82px => 562px text width) -->
+          <div class="lg:pr-[82px]">
+            <!-- Description paragraph (Figma node 1:676 — mb: 24px) -->
+            <p class="info-reveal text-[#141414] text-ds-18 font-normal leading-[1.5] mb-[24px]">
+              {{ description || 'Chúng tôi là một công ty hoạt động trong lĩnh vực công nghệ, chuyên phát triển các sản phẩm phần mềm, ứng dụng di động, giải pháp chuyển đổi số doanh nghiệp, IoT và dịch vụ outsourcing chất lượng cao.' }}
             </p>
 
-            <div class="flex flex-wrap items-center gap-6 lg:gap-10 pt-1">
-              <div
-                v-for="(pillar, idx) in displayPillars"
-                :key="pillar.title || idx"
-                class="flex items-center gap-3"
-              >
-                <img
-                  :src="pillar.icon || (idx === 0 ? '/images/company/kien-tao.svg' : idx === 1 ? '/images/company/hieu-qua.webp' : '/images/company/dong-hanh.svg')"
-                  :alt="pillar.title"
-                  class="w-10 h-10 object-contain shrink-0"
-                />
-                <span class="text-ds-18 font-medium text-[#141414] whitespace-nowrap">
-                  {{ pillar.title }}
-                </span>
+            <!-- 3 Pillars Row with custom intro title (Figma node 1:678 — mb: 24px) -->
+            <div class="info-reveal mb-[24px]">
+              <p class="text-[#141414] text-ds-18 font-normal leading-[1.5] mb-[10px]">
+                {{ pillarsTitle || 'Tạo ra các sản phẩm công nghệ sáng tạo mang lại giá trị cho cộng đồng, khách hàng với phương châm chính:' }}
+              </p>
+
+              <div class="flex flex-wrap items-center gap-6 lg:gap-[10px]">
+                <div
+                  v-for="(pillar, idx) in displayPillars"
+                  :key="pillar.title || idx"
+                  class="flex items-center gap-[16px] py-[8px] lg:flex-1"
+                >
+                  <img
+                    :src="pillar.icon || (idx === 0 ? '/images/company/kien-tao.svg' : idx === 1 ? '/images/company/hieu-qua.webp' : '/images/company/dong-hanh.svg')"
+                    :alt="pillar.title"
+                    class="w-10 h-10 object-contain shrink-0"
+                  />
+                  <span class="text-ds-18 font-medium text-[#141414] whitespace-nowrap">
+                    {{ pillar.title }}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Commitments List with custom intro title (Figma node 1:767) -->
-          <div class="flex flex-col gap-3 max-w-[562px] mt-2">
-            <p class="text-[#141414] text-ds-18 font-normal">
-              {{ commitmentsTitle || 'Chúng tôi luôn nỗ lực nhằm:' }}
-            </p>
+            <!-- Commitments List with custom intro title (Figma node 1:767) -->
+            <div class="info-reveal">
+              <p class="text-[#141414] text-ds-18 font-normal leading-[1.5] mb-[10px]">
+                {{ commitmentsTitle || 'Chúng tôi luôn nỗ lực nhằm:' }}
+              </p>
 
-            <ul class="flex flex-col gap-3 pl-1">
-              <li
-                v-for="item in displayCommitments"
-                :key="item"
-                class="flex items-start gap-3 text-[#141414] text-ds-18 font-normal"
-              >
-                <span class="mt-2.5 w-1.5 h-1.5 rounded-full bg-[#141414] shrink-0" />
-                <span>{{ item }}</span>
-              </li>
-            </ul>
+              <ul class="pl-1">
+                <li
+                  v-for="item in displayCommitments"
+                  :key="item"
+                  class="flex items-start text-[#141414] text-ds-18 font-normal leading-[1.5] mb-[10px] last:mb-0"
+                >
+                  <span class="mt-2.5 w-1.5 h-1.5 rounded-full bg-[#141414] shrink-0 mr-[12px]" />
+                  <span>{{ item }}</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        <!-- Right Column: Video & 10+ Experience Fixed Layers Card (Figma node 1:772 / 1:776) -->
-        <div class="flex-1 w-full lg:max-w-[640px] flex flex-col items-center">
+        <!-- Right Column: Video & 10+ Experience Fixed Layers Card (Figma node 1:772 / 1:776 — w: 683px, align left so 734px card overflows right) -->
+        <div class="w-full lg:w-[683px] lg:shrink-0 flex flex-col items-start">
 
-          <!-- Layered Video Card Container (Figma 1:772 / 1:776) -->
-          <div class="relative w-full max-w-[620px] aspect-[735/504] flex items-center justify-center">
+          <!-- Layered Video Card Container with 3D Tilt (Figma 1:776 — 734x504) -->
+          <div
+            ref="videoCardRef"
+            class="video-card-container info-reveal relative w-full lg:w-[734px] max-w-none aspect-[735/504] flex items-center justify-center transition-transform duration-200"
+            @mousemove="onCardMouseMove"
+            @mouseleave="onCardMouseLeave"
+          >
 
             <!-- Layer 1: Background Mint Tilted Shape (Figma node 1:777 / 1:778) -->
             <img
@@ -275,7 +329,7 @@ const displayCommitments = computed(() => (props.commitments && props.commitment
           </div>
 
           <!-- Below Card Row: Note & "View Profile" CTA Button (Figma node 1:773) -->
-          <div class="w-full max-w-[620px] flex flex-col sm:flex-row items-center justify-center gap-[20px] mt-[45px] py-[10px]">
+          <div class="w-full flex flex-col sm:flex-row items-center justify-center gap-[20px] mt-[45px] py-[10px] pl-[20px] pr-[10px]">
             <span class="text-[#141414] text-ds-18 font-normal text-center sm:text-left">
               {{ profileNote || 'Tải profile để khám phá Teanis' }}
             </span>

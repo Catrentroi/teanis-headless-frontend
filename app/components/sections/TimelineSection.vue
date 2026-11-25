@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
 interface TimelineItem {
   year: string
   title?: string
@@ -15,6 +19,84 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+const sectionRef = ref<HTMLElement | null>(null)
+let ctx: gsap.Context | null = null
+
+onMounted(() => {
+  if (!sectionRef.value) return
+  gsap.registerPlugin(ScrollTrigger)
+
+  ctx = gsap.context(() => {
+    const items = sectionRef.value?.querySelectorAll('.timeline-item')
+    if (!items || items.length === 0) return
+
+    const stepDuration = 1.2
+    const holdEnd = 0.5
+    const totalDuration = items.length * stepDuration + holdEnd
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: sectionRef.value,
+        start: 'top -5%',
+        end: '+=1600',
+        pin: true,
+        pinSpacing: true,
+        scrub: 1,
+        anticipatePin: 1
+      }
+    })
+
+    // 1. Runway line draws itself from left to right across the sequence
+    tl.fromTo(
+      '.timeline-runway',
+      { scaleX: 0, transformOrigin: 'left center' },
+      { scaleX: 1, ease: 'none', duration: items.length * stepDuration },
+      0
+    )
+
+    // 2. Sequential milestone reveals: Line first, then Disc & Text, then next milestone
+    items.forEach((item, idx) => {
+      const line = item.querySelector('.timeline-line')
+      const disc = item.querySelector('.timeline-disc')
+      const content = item.querySelector('.timeline-content')
+      const startTime = idx * stepDuration
+
+      // Step A: Line appears first (draws down from top)
+      if (line) {
+        tl.fromTo(
+          line,
+          { scaleY: 0, opacity: 0, transformOrigin: 'top center' },
+          { scaleY: 1, opacity: 1, ease: 'power2.out', duration: 0.6 },
+          startTime
+        )
+      }
+
+      // Step B: Disc and Text appear next together
+      if (disc) {
+        tl.fromTo(
+          disc,
+          { scale: 0, opacity: 0, transformOrigin: 'center 82%' },
+          { scale: 1, opacity: 1, ease: 'back.out(1.4)', duration: 0.5 },
+          startTime + 0.45
+        )
+      }
+
+      if (content) {
+        tl.fromTo(
+          content,
+          { y: 24, opacity: 0 },
+          { y: 0, opacity: 1, ease: 'power2.out', duration: 0.5 },
+          startTime + 0.5
+        )
+      }
+    })
+  }, sectionRef.value)
+})
+
+onUnmounted(() => {
+  ctx?.revert()
+})
 
 // Default fallback items matching Figma node 1:825
 const defaultItems: TimelineItem[] = [
@@ -50,7 +132,8 @@ const displayItems = computed(() => {
 // Visual configuration matching exact Figma specifications (node 1:825 / 1:830)
 const milestoneConfigs = [
   {
-    graphic: '/images/timeline/graphic-2015.svg',
+    lineGraphic: '/images/timeline/line-2015.svg',
+    discGraphic: '/images/timeline/disc-2015.svg',
     cardWidth: 'w-[307px]',
     cardHeight: 'h-[344px]',
     graphicBox: 'w-[120px] h-[342px] top-[31.17px] left-0',
@@ -58,7 +141,8 @@ const milestoneConfigs = [
     accentColor: '#00D1BC'
   },
   {
-    graphic: '/images/timeline/graphic-2019.svg',
+    lineGraphic: '/images/timeline/line-2019.svg',
+    discGraphic: '/images/timeline/disc-2019.svg',
     cardWidth: 'w-[311px]',
     cardHeight: 'h-[353px]',
     graphicBox: 'w-[140px] h-[353px] top-[31.17px] left-0',
@@ -66,7 +150,8 @@ const milestoneConfigs = [
     accentColor: '#0709A2'
   },
   {
-    graphic: '/images/timeline/graphic-2023.svg',
+    lineGraphic: '/images/timeline/line-2023.svg',
+    discGraphic: '/images/timeline/disc-2023.svg',
     cardWidth: 'w-[322px]',
     cardHeight: 'h-[358px]',
     graphicBox: 'w-[160px] h-[365px] top-[31.46px] left-[1.31px]',
@@ -74,7 +159,8 @@ const milestoneConfigs = [
     accentColor: '#00D1BC'
   },
   {
-    graphic: '/images/timeline/graphic-2024.svg',
+    lineGraphic: '/images/timeline/line-2024.svg',
+    discGraphic: '/images/timeline/disc-2024.svg',
     cardWidth: 'w-[331px]',
     cardHeight: 'h-[365px]',
     graphicBox: 'w-[180px] h-[374px] top-[31.19px] left-0',
@@ -87,14 +173,15 @@ const milestoneConfigs = [
 <template>
   <section
     id="timeline"
-    class="timeline-section py-20 lg:py-32 relative overflow-hidden transition-colors duration-300"
+    ref="sectionRef"
+    class="timeline-section min-h-screen flex flex-col justify-center py-20 lg:py-[128px] relative overflow-hidden transition-colors duration-300"
     :style="{ backgroundColor: bgColor || '#FFFFFF' }"
   >
     <!-- Standard 1400px container matching Figma node 1:825 -->
     <div class="max-w-[1400px] mx-auto px-6 sm:px-8 xl:px-0 w-full">
 
-      <!-- Header Section (Figma node 1:826) -->
-      <div class="timeline-header flex flex-col gap-8 mb-16 lg:mb-[100px]">
+      <!-- Header Section (Figma node 1:826 — gap: 24px, mb: 100px to track) -->
+      <div class="timeline-header flex flex-col gap-[24px] mb-12 lg:mb-[100px]">
         <!-- Title Badge with Dot Shape (Figma node 1:827) -->
         <div class="flex items-center gap-2.5">
           <img
@@ -113,14 +200,14 @@ const milestoneConfigs = [
         </p>
       </div>
 
-      <!-- Timeline Track Body (Figma node 1:830) -->
+      <!-- Timeline Track Body (Figma node 1:830 — gap-x: 38px, items-end) -->
       <!-- Supports horizontal scroll on tablet/mobile while maintaining pristine layout -->
       <div class="timeline-track w-full overflow-x-auto xl:overflow-visible pb-10 xl:pb-0 scrollbar-none">
-        <div class="relative min-w-[1360px] xl:min-w-0 xl:w-full h-[400px] flex items-end justify-between">
+        <div class="relative min-w-[1385px] xl:min-w-0 xl:w-full min-h-[365px] flex items-end gap-[38px]">
 
-          <!-- Background Horizontal Runway Line (Figma node 1:831) -->
+          <!-- Background Horizontal Runway Line (Figma node 1:831 — left: 50.65px, top: 325.25px, w: 1617px) -->
           <div
-            class="timeline-runway absolute h-[30px] left-[50px] w-[calc(100%-20px)] xl:w-[1500px] top-[325px] pointer-events-none select-none z-0"
+            class="timeline-runway absolute h-[30px] left-[50px] w-[calc(100%-20px)] xl:w-[1617px] top-[325px] pointer-events-none select-none z-0"
             aria-hidden="true"
           >
             <img
@@ -142,24 +229,31 @@ const milestoneConfigs = [
             :data-milestone="item.year"
             :data-index="index"
           >
-            <!-- Pin Graphic Container (Dot + Line + 3D Diamond Base) -->
+            <!-- Pin Graphic Container: Split into Disc (bottom) and Line (top) -->
             <div
               :class="[
                 'timeline-graphic absolute pointer-events-none select-none',
                 milestoneConfigs[index % 4].graphicBox
               ]"
             >
+              <!-- Part 2: Disc at bottom -->
               <img
-                :src="milestoneConfigs[index % 4].graphic"
-                :alt="`Cột mốc ${item.year}`"
-                class="w-full h-full object-contain"
+                :src="milestoneConfigs[index % 4].discGraphic"
+                :alt="`Cột mốc ${item.year} đĩa`"
+                class="timeline-disc absolute inset-0 w-full h-full object-contain"
+              />
+              <!-- Part 1: Line pin on top -->
+              <img
+                :src="milestoneConfigs[index % 4].lineGraphic"
+                :alt="`Cột mốc ${item.year} đường line`"
+                class="timeline-line absolute inset-0 w-full h-full object-contain"
               />
             </div>
 
-            <!-- Milestone Text Container (Year + Description) -->
+            <!-- Milestone Text Container (Year + Description — Figma: flex-col items-start, no gap) -->
             <div
               :class="[
-                'timeline-content absolute flex flex-col items-start gap-1 select-text',
+                'timeline-content absolute flex flex-col items-start select-text',
                 milestoneConfigs[index % 4].textBox
               ]"
             >

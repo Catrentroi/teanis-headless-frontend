@@ -57,7 +57,7 @@ const socialLinks = [
 <template>
   <footer
     id="site-footer"
-    class="relative bg-[#0709a2] text-white pt-36 sm:pt-44 md:pt-48 lg:pt-[220px] pb-[20px] lg:pb-[28px] overflow-hidden"
+    class="relative bg-[#0709a2] text-white pt-36 sm:pt-44 md:pt-48 lg:pt-[200px] pb-16 lg:pb-[28px] overflow-hidden"
   >
     <!-- Background overlay / watermark (horizontal_02) -->
     <div
@@ -115,9 +115,9 @@ const socialLinks = [
           </div>
         </div>
 
-        <!-- Right: Navigation Columns -->
+        <!-- Right: Navigation Columns (Figma: w: 508px, justify-between) -->
         <div
-          class="flex flex-row flex-wrap sm:flex-nowrap items-start gap-12 sm:gap-20 lg:gap-[215px] w-full lg:w-auto"
+          class="flex flex-row flex-wrap sm:flex-nowrap items-start justify-between gap-12 sm:gap-20 lg:gap-0 lg:w-[508px] w-full shrink-0"
         >
           <!-- Cột Công ty -->
           <div class="flex flex-col items-start min-w-[130px]">
@@ -177,9 +177,9 @@ const socialLinks = [
         </div>
       </div>
 
-      <!-- Bottom Bar -->
+      <!-- Bottom Bar (Figma: gap 91px from Main Container, no extra top padding) -->
       <div
-        class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white text-ds-16 sm:text-ds-18 font-normal pt-8 sm:pt-10"
+        class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white text-ds-16 sm:text-ds-18 font-normal"
       >
         <p>
           © 2025. All rights reserved.

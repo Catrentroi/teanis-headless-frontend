@@ -168,7 +168,18 @@ landing-nuxt/
 
 ## 6. Nhật Ký Công Việc (Recent Work Log)
 
-
+### Phiên làm việc: 20/11/2026 (Chiều & Cuối ngày) - Rolling Window
+- **GSAP Animation 4 Thẻ Core Values (CoreValuesSection)**:
+  - Ghim màn hình (`pin: true`, `scrub: 1.2`, `end: '+=2400'`) tuần tự 5 bước xuất hiện 4 thẻ (S $\rightarrow$ F $\rightarrow$ P $\rightarrow$ B).
+  - Tự động nháy hover flash màu (~0.7s) khi từng thẻ xuất hiện, làm mờ các thẻ khác (`opacity: 0.2`) để focus thị giác, sau đó trượt vào ô grid.
+  - Cả 4 thẻ sáng rõ $\rightarrow$ Vòng xoay mũi tên bung nở và quay vô tận; hỗ trợ chạy ngược 2 chiều tuần tự mượt mà khi scroll lên.
+- **Hiệu Ứng Giọt Nước & Background Ly (BrandPhilosophySection)**:
+  - Thay thế superhero landing bằng giọt nước pha lê xám khói thủy tinh rơi chậm rãi (1.6s) cùng tone background `Vector.svg`.
+  - Chạm đáy loang nở thành chiếc ly trong 2.2s kết hợp fade in (`0 -> 1`) và tan sương mờ (`blur(12px) -> 0px`); tự động đảo chiều khi cuộn lên.
+- **Tối Ưu & Đồng Bộ Các Section Toàn Trang**:
+  - `TimelineSection`: Ghim full màn hình (`min-h-screen`, `pin: true`), tách 8 file SVG line & disc, vẽ runway line và bung mốc thời gian tuần tự.
+  - `MetricsSection`: Loại bỏ toàn bộ `translateY`, tối ưu counter odometer mượt mà.
+  - `VisionMissionSection`: Chuyển thành section tĩnh 100% theo yêu cầu.
 
 *(Lịch sử các phiên làm việc chi tiết trước ngày 19/11/2026 đã được lưu trữ tại [docs/archive/WORK_LOG_2026_11.md](file:///d:/wordpress/headless/landing-nuxt/docs/archive/WORK_LOG_2026_11.md)).*
 
@@ -188,6 +199,10 @@ landing-nuxt/
   - Xử lý triệt để lỗi mất Body trên Vercel do lệch schema và bộ đệm ISR 1 tiếng.
   - Tự động suy luận link REST API từ `WP_GRAPHQL_URL` và nâng cấp xử lý lỗi form tại `server/api/contact.post.ts`.
   - Website production `https://teanis-headless-frontend.vercel.app/` kết nối trực tiếp Pantheon hoạt động mượt mà 100%.
+- **Kiến trúc Hoạt họa SVG & Tối ưu Hiệu năng (Hero Illustration Animation)**:
+  - Xây dựng component đa năng `InlineSvg.vue` (tự động bung SVG ra HTML DOM, chống cache stale, giữ nguyên tỷ lệ responsive).
+  - Khắc phục triệt để lỗi nhân vật không lắc lư: trỏ `illustrationSrc` về SVG cục bộ có gắn định danh DOM, thêm bộ tự động wrap nhóm `ensureSvgGroups`, định vị chuẩn xác tâm xoay SVG bằng `svgOrigin` (`195 395` cho nhân vật trái, `636 385` cho nhân vật phải).
+  - Tối ưu hiệu năng 60fps & tiết kiệm CPU: Sử dụng `IntersectionObserver` tự động tạm dừng (pause) toàn bộ tween khi cuộn ra khỏi màn hình và tiếp tục (resume) khi vào lại viewport.
 
 ---
 

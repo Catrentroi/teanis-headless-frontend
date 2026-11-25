@@ -13,36 +13,15 @@ export interface AboutPageData {
 }
 
 import { cleanAcfData } from '../utils/wpClean'
+import { ABOUT_PAGE_QUERY } from '../queries/aboutPage'
 
 export const useAboutPage = () => {
   const { query } = useWpApi()
 
   const fetchAboutPage = async (uri: string = '/'): Promise<AboutPageData> => {
-    const pageQuery = `
-      query GetAboutPage($id: ID!) {
-        page(id: $id, idType: URI) {
-          title
-          aboutPageFields {
-            heroBgColor heroBgImage { node { sourceUrl } } heroBadge heroTitle heroDescription heroCtaText heroCtaLink heroIllustration { node { sourceUrl } }
-            hashtagItems { text }
-            companyBgColor companyBgImage { node { sourceUrl } } companySubtitle companyTitle companyPhonetic companyAudioFile { node { mediaItemUrl sourceUrl } }
-            companyName companyDescription companyPillarsTitle companyPillars { title icon { node { sourceUrl } } } companyCommitmentsTitle companyCommitments { text }
-            companyProfileNote companyYearsExp companyExpLabel companyVideoPoster { node { sourceUrl } } companyVideoUrl companyCtaText companyCtaLink
-            metricsBgColor metricsList { value label sublabel }
-            timelineBgColor timelineSubtitle timelineTitle timelineDescription timelineItems { year title desc icon { node { sourceUrl } } }
-            vmBgColor vmSubtitle vmTitle vmDescription visionTitle visionText visionIcon { node { sourceUrl } } missionTitle missionItems { text } missionIcon { node { sourceUrl } }
-            valuesBgColor valuesSubtitle valuesTitle valuesItems { symbol title desc }
-            philBgColor philSubtitle philTitle philIntro philBrandLogo { node { sourceUrl } } philStoryText philSymbolTitle philSymbolDesc philSymbolVideo { node { mediaItemUrl sourceUrl } } philSymbolIcon { node { sourceUrl } } philClosingText
-            ctaBgColor ctaHeading ctaSubheading ctaButtonText ctaButtonLink ctaIllustration { node { sourceUrl } }
-          }
-          seo { title metaDesc opengraphTitle opengraphDescription opengraphImage { sourceUrl } canonical schema { raw } }
-        }
-      }
-    `
-
-    let res = await query<{ page?: { title?: string; aboutPageFields?: any; seo?: any } }>(pageQuery, { id: uri })
+    let res = await query<{ page?: { title?: string; aboutPageFields?: any; seo?: any } }>(ABOUT_PAGE_QUERY, { id: uri })
     if (!res?.page?.aboutPageFields && uri !== '/') {
-      res = await query<{ page?: { title?: string; aboutPageFields?: any; seo?: any } }>(pageQuery, { id: '/' })
+      res = await query<{ page?: { title?: string; aboutPageFields?: any; seo?: any } }>(ABOUT_PAGE_QUERY, { id: '/' })
     }
 
     const raw = res?.page?.aboutPageFields

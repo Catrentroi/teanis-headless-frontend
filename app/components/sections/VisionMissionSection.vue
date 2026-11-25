@@ -24,10 +24,10 @@ defineProps<Props>()
     <div class="max-w-[1400px] mx-auto px-6 sm:px-8 xl:px-0">
       
       <!-- Section Header Badge & Subtitle (Figma node 1:837) -->
-      <div class="flex flex-col items-center justify-center text-center mb-12 lg:mb-[100px]">
+      <div class="vm-header flex flex-col items-center justify-center text-center mb-12 lg:mb-[100px]">
         <!-- 4 Cyan Squares Badge with Subtitle -->
-        <div class="flex items-center justify-center gap-2.5 mb-8">
-          <div>
+        <div class="flex items-center justify-center gap-2.5 mb-6">
+          <div class="vm-dot">
             <img src="/images/company/dot.svg" alt="dot" class="w-full h-full">
           </div>
           <span class="text-ds-24 font-bold text-[#141414] tracking-tight">
@@ -58,7 +58,7 @@ defineProps<Props>()
         <!-- Card 1: Tầm nhìn (Figma node 1:841) -->
         <div
           v-if="visionText"
-          class="relative rounded-[20px] border border-[#e3eef8] px-6 sm:px-10 py-8 lg:px-10 lg:py-8 overflow-hidden flex flex-col justify-center items-center text-center min-h-[204px] shadow-2xs transition-shadow"
+          class="vision-card relative rounded-[20px] border border-[#e3eef8] px-6 sm:px-10 py-8 lg:px-10 lg:py-8 overflow-hidden flex flex-col justify-center items-center text-center min-h-[204px] shadow-2xs"
         >
           <!-- Eye Icon Watermark (Figma node 1:842) -->
           <img
@@ -81,7 +81,7 @@ defineProps<Props>()
         <!-- Card 2: Sứ mệnh (Figma node 1:850) -->
         <div
           v-if="missionItems && missionItems.length > 0"
-          class="relative rounded-[20px] border border-[#e3eef8] px-6 sm:px-10 py-8 lg:px-10 lg:py-8 overflow-hidden flex flex-col justify-center items-center text-center min-h-[204px] shadow-2xs transition-shadow"
+          class="mission-card relative rounded-[20px] border border-[#e3eef8] px-6 sm:px-10 py-8 lg:px-10 lg:py-8 overflow-hidden flex flex-col justify-center items-center text-center min-h-[204px] shadow-2xs"
         >
           <!-- Target Icon Watermark (Figma node 1:851) -->
           <img
@@ -99,7 +99,7 @@ defineProps<Props>()
               <li
                 v-for="item in missionItems"
                 :key="item"
-                class="flex items-start gap-2.5 text-[#141414] text-ds-16 sm:text-ds-18 font-normal justify-center"
+                class="mission-item flex items-start gap-2.5 text-[#141414] text-ds-16 sm:text-ds-18 font-normal justify-center"
               >
                 <span class="mt-2.5 w-1.5 h-1.5 rounded-full bg-[#141414] shrink-0" />
                 <span>{{ item }}</span>
