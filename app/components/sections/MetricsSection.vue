@@ -98,7 +98,7 @@ onUnmounted(() => {
     class="py-16 lg:py-20 transition-colors duration-300"
     :style="{ backgroundColor: bgColor || '#F0F0F0' }"
   >
-    <div class="max-w-[1400px] mx-auto px-6 sm:px-8 xl:px-0">
+    <div class="max-w-[1400px] mx-auto px-[15px]">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-8 xl:grid-cols-none xl:flex xl:justify-between xl:gap-0">
         <div
           v-for="(metric, index) in metrics"

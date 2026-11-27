@@ -10,11 +10,13 @@ usePageSeo(pageData.value?.seo, {
 })
 
 
+const introDone = ref(false)
 </script>
 
 <template>
   <main v-if="pageData">
-    <HeroSection v-bind="pageData.hero" :hashtags="pageData.hashtags" />
+    <IntroOverlay @complete="introDone = true" />
+    <HeroSection v-bind="pageData.hero" :hashtags="pageData.hashtags" :intro-done="introDone" />
     <CompanyInfoSection v-bind="pageData.company" />
     <MetricsSection :metrics="pageData.metrics" :bg-color="pageData.metricsBgColor" />
     <TimelineSection v-bind="pageData.timeline" />

@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useStoryMotion } from '~/composables/useStoryMotion'
 import PhilosophyElementsGrid from './PhilosophyElementsGrid.vue'
 
 if (import.meta.client) gsap.registerPlugin(ScrollTrigger)
@@ -38,8 +39,11 @@ const formattedStoryHtml = computed(() => {
     .join('')
 })
 
+const titleWords = computed(() => (props.title ?? '').trim().split(/\s+/).filter(Boolean))
+
 const sectionRef = ref<HTMLElement | null>(null)
 let ctx: gsap.Context | null = null
+const { getHeaderOffset, prefersReducedMotion } = useStoryMotion()
 
 const unionShapes = [
   { src: '/images/philosophy/Union.svg', pos: 'left-[calc(50%-860px)] bottom-[950px] lg:bottom-[1050px]' },
@@ -51,53 +55,161 @@ const unionShapes = [
 onMounted(() => {
   if (!sectionRef.value) return
   ctx = gsap.context(() => {
-    // 1. Water Drop & Glass Cup Expansion (Scroll-driven, centered in viewport)
-    const impactY = typeof window !== 'undefined' && window.innerWidth < 1024 ? 520 : 640
+    const { revealMaskedLines } = useStoryMotion()
+    // Story & closing text reveal individually when each enters viewport
+    sectionRef.value?.querySelectorAll('.philosophy-story-reveal').forEach((el) => {
+      revealMaskedLines(el, {
+        trigger: el,
+        start: 'top 85%'
+      })
+    })
+
+    // Monogram card & text entrance when scrolling to #monogram-block
+    const monogramCard = sectionRef.value?.querySelector('.monogram-card')
+    if (monogramCard && !prefersReducedMotion()) {
+      gsap.fromTo(
+        monogramCard,
+        { x: -36, opacity: 0, scale: 0.95 },
+        {
+          x: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.9,
+          ease: 'power3.out',
+          clearProps: 'transform',
+          scrollTrigger: {
+            trigger: '#monogram-block',
+            start: 'top 80%',
+            once: true
+          }
+        }
+      )
+    }
+    revealMaskedLines('.monogram-text-reveal', {
+      trigger: '#monogram-block',
+      start: 'top 76%'
+    })
+
+    // 1. Water Drop + 3-Step Header Storytelling (80% Subtitle -> Splash & Quote Title -> Final Layout + Description)
+    const stageEl = sectionRef.value?.querySelector('.philosophy-intro-stage') as HTMLElement | null
+    const subEl = sectionRef.value?.querySelector('.philosophy-subtitle-zoom')
+    const titleBoxEl = sectionRef.value?.querySelector('.philosophy-title-quote')
+    const wordEls = sectionRef.value?.querySelectorAll('.philosophy-title-word')
+    const quoteMarks = sectionRef.value?.querySelectorAll('.philosophy-quote-mark')
+    const introEl = sectionRef.value?.querySelector('.philosophy-intro-reveal')
+    const impactY = typeof window !== 'undefined' && window.innerWidth < 1024 ? 360 : 480
 
     gsap.set('.philosophy-cup-bg', {
-      transformOrigin: `50% ${impactY}px`,
-      clipPath: `circle(0% at 50% ${impactY}px)`,
-      scale: 0.94,
+      transformOrigin: '50% 0%',
+      clipPath: 'circle(0% at 50% 0%)',
+      scale: 0.96,
       opacity: 0
     })
-    gsap.set('.water-drop-item', { y: 40, opacity: 0, scale: 0.75 })
+    gsap.set('.water-drop-item', { y: 20, opacity: 0, scale: 0.75 })
     gsap.set(['.water-ripple-1', '.water-ripple-2', '.water-ripple-3', '.water-splash-glow'], {
       scale: 0.1,
       opacity: 0
     })
 
-    const waterTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: sectionRef.value,
-        start: 'top 65%',
-        end: '+=850',
-        scrub: 1
+    let hasFlashedColor = false
+    const runColorFlashOnce = () => {
+      if (hasFlashedColor || !wordEls?.length) return
+      hasFlashedColor = true
+      gsap.timeline()
+        .to(wordEls, { color: '#00d1bc', duration: 0.32, stagger: 0.035, ease: 'sine.inOut' }, 0)
+        .to(wordEls, { color: '#0709a2', duration: 0.32, stagger: 0.035, ease: 'sine.inOut' }, 0.28)
+        .to(wordEls, { color: '#f97c00', duration: 0.32, stagger: 0.035, ease: 'sine.inOut' }, 0.56)
+        .to(wordEls, { color: '#141414', duration: 0.42, stagger: 0.035, ease: 'sine.out', clearProps: 'color' }, 0.86)
+    }
+
+    const mm = gsap.matchMedia()
+
+    // Tablet & Desktop (>= 768px): Pin stage so water drop & text stay aligned in viewport
+    mm.add('(min-width: 768px)', () => {
+      if (!prefersReducedMotion()) {
+        if (subEl) gsap.set(subEl, { scale: 2.1, y: 120, opacity: 0 })
+        if (titleBoxEl) gsap.set(titleBoxEl, { y: 20 })
+        if (wordEls?.length) gsap.set(wordEls, { y: 18, opacity: 0 })
+        if (quoteMarks?.length) gsap.set(quoteMarks, { opacity: 0, scale: 0.85 })
+        if (introEl) gsap.set(introEl, { y: 24, opacity: 0 })
+      }
+
+      const waterTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: stageEl || sectionRef.value,
+          start: () => `top ${getHeaderOffset(12)}px`,
+          end: '+=1500',
+          pin: stageEl || false,
+          pinSpacing: true,
+          scrub: 1.2,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            if (self.progress >= 0.52) runColorFlashOnce()
+          }
+        }
+      })
+
+      // Step 1 (0 -> 0.42): Giọt nước rơi xuống + Subtitle to (~80%) ở giữa màn hình
+      waterTl.to('.water-drop-item', { opacity: 1, scale: 1, duration: 0.1, ease: 'power1.out' }, 0)
+      waterTl.to('.water-drop-item', { y: impactY, duration: 0.42, ease: 'none' }, 0)
+      if (subEl && !prefersReducedMotion()) {
+        waterTl.to(subEl, { opacity: 1, duration: 0.16, ease: 'power2.out' }, 0.04)
+      }
+
+      // Step 2 (0.42 -> 0.74): Giọt nước chạm & tỏa sóng + nền ly loang; Subtitle lùi về trên, Title hiện dạng Quote
+      waterTl.to('.water-drop-item', { scaleX: 2.2, scaleY: 0.15, opacity: 0, duration: 0.07, ease: 'power1.out' }, 0.42)
+      waterTl.fromTo('.water-splash-glow', { scale: 0.15, opacity: 0.95 }, { scale: 2.4, opacity: 0, duration: 0.25, ease: 'power2.out', immediateRender: false }, 0.41)
+      waterTl.fromTo('.water-ripple-1', { scale: 0.1, opacity: 0.85, borderWidth: '2px' }, { scale: 2.6, opacity: 0, borderWidth: '0.5px', duration: 0.3, ease: 'power2.out', immediateRender: false }, 0.42)
+      waterTl.fromTo('.water-ripple-2', { scale: 0.1, opacity: 0.65 }, { scale: 3.4, opacity: 0, duration: 0.34, ease: 'power2.out', immediateRender: false }, 0.45)
+      waterTl.fromTo('.water-ripple-3', { scale: 0.1, opacity: 0.45 }, { scale: 4.3, opacity: 0, duration: 0.38, ease: 'power2.out', immediateRender: false }, 0.48)
+      waterTl.to('.philosophy-cup-bg', { clipPath: 'circle(160% at 50% 0%)', scale: 1, opacity: 1, duration: 0.44, ease: 'power3.inOut' }, 0.44)
+
+      if (!prefersReducedMotion()) {
+        if (subEl) waterTl.to(subEl, { scale: 1, y: 0, duration: 0.26, ease: 'power2.inOut' }, 0.42)
+        if (quoteMarks?.length) waterTl.to(quoteMarks, { opacity: 0.25, scale: 1, duration: 0.16, ease: 'power2.out' }, 0.44)
+        if (wordEls?.length) {
+          waterTl.to(wordEls, { y: 0, opacity: 1, duration: 0.16, stagger: 0.01, ease: 'sine.out' }, 0.44)
+        }
+
+        // Step 3 (0.72 -> 1.08): Description hiện lên hẳn xong rồi dấu Quote mới mờ dần đi
+        if (titleBoxEl) waterTl.to(titleBoxEl, { y: 0, duration: 0.16, ease: 'power2.out' }, 0.7)
+        if (introEl) waterTl.to(introEl, { y: 0, opacity: 1, duration: 0.2, ease: 'power2.out' }, 0.74)
+        if (quoteMarks?.length) waterTl.to(quoteMarks, { opacity: 0, duration: 0.14, ease: 'power1.out' }, 0.94)
       }
     })
 
-    // Giai đoạn 1 (0 -> 0.5): Giọt nước xuất hiện & rơi xuyên suốt theo scroll tới vị trí cố định
-    waterTl.to('.water-drop-item', { opacity: 1, scale: 1, duration: 0.12, ease: 'power1.out' }, 0)
-    waterTl.to('.water-drop-item', { y: impactY, duration: 0.5, ease: 'none' }, 0)
+    // Mobile (< 768px): Unpinned smooth sequence
+    mm.add('(max-width: 767px)', () => {
+      const mobileTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: stageEl || sectionRef.value,
+          start: 'top 75%',
+          end: '+=650',
+          scrub: 1
+        }
+      })
+      mobileTl.to('.water-drop-item', { opacity: 1, scale: 1, duration: 0.12 }, 0)
+      mobileTl.to('.water-drop-item', { y: impactY, duration: 0.45, ease: 'none' }, 0)
+      mobileTl.to('.water-drop-item', { opacity: 0, duration: 0.08 }, 0.45)
+      mobileTl.fromTo('.water-ripple-1', { scale: 0.1, opacity: 0.85 }, { scale: 2.2, opacity: 0, duration: 0.35, immediateRender: false }, 0.45)
+      mobileTl.to('.philosophy-cup-bg', { clipPath: 'circle(160% at 50% 0%)', scale: 1, opacity: 1, duration: 0.45 }, 0.48)
 
-    // Giai đoạn 2 (0.5 -> 0.75): Chạm điểm cố định -> tan hòa & bắn vũng nước lan tỏa
-    waterTl.to('.water-drop-item', { scaleX: 2.2, scaleY: 0.15, opacity: 0, duration: 0.08, ease: 'power1.out' }, 0.5)
-    waterTl.fromTo('.water-splash-glow', { scale: 0.15, opacity: 0.95 }, { scale: 2.3, opacity: 0, duration: 0.28, ease: 'power2.out' }, 0.49)
-    waterTl.fromTo('.water-ripple-1', { scale: 0.1, opacity: 0.85, borderWidth: '2px' }, { scale: 2.5, opacity: 0, borderWidth: '0.5px', duration: 0.35, ease: 'power2.out' }, 0.5)
-    waterTl.fromTo('.water-ripple-2', { scale: 0.1, opacity: 0.65 }, { scale: 3.3, opacity: 0, duration: 0.4, ease: 'power2.out' }, 0.53)
-    waterTl.fromTo('.water-ripple-3', { scale: 0.1, opacity: 0.45 }, { scale: 4.2, opacity: 0, duration: 0.45, ease: 'power2.out' }, 0.56)
+      if (!prefersReducedMotion()) {
+        if (subEl) gsap.set(subEl, { scale: 1.35, opacity: 0 })
+        if (wordEls?.length) gsap.set(wordEls, { y: 16, opacity: 0 })
+        if (introEl) gsap.set(introEl, { y: 16, opacity: 0 })
 
-    // Giai đoạn 3 (0.52 -> 1.0): Background chiếc ly loang mượt từ tâm bằng clip-path + fade
-    waterTl.to(
-      '.philosophy-cup-bg',
-      {
-        clipPath: `circle(150% at 50% ${impactY}px)`,
-        scale: 1,
-        opacity: 1,
-        duration: 0.48,
-        ease: 'power2.out'
-      },
-      0.52
-    )
+        const mobileHeaderTl = gsap.timeline({
+          scrollTrigger: { trigger: stageEl, start: 'top 65%', once: true }
+        })
+        if (subEl) mobileHeaderTl.to(subEl, { scale: 1, opacity: 1, duration: 0.75, ease: 'power3.out' })
+        if (wordEls?.length) {
+          mobileHeaderTl.to(wordEls, { y: 0, opacity: 1, duration: 0.55, stagger: 0.04, ease: 'sine.out', onStart: runColorFlashOnce }, '-=0.2')
+        }
+        if (introEl) mobileHeaderTl.to(introEl, { y: 0, opacity: 1, duration: 0.7, ease: 'power2.out' }, '+=0.15')
+      }
+    })
 
     // 2. Monogram background shapes fade in and float along scroll centered in viewport
     const unionEls = sectionRef.value?.querySelectorAll('.monogram-union-shape')
@@ -105,9 +217,9 @@ onMounted(() => {
       const unionTl = gsap.timeline({
         scrollTrigger: {
           trigger: '#monogram-block',
-          start: 'top 50%',
-          end: 'center center',
-          scrub: 1
+          start: 'top bottom',
+          end: 'bottom 100%',
+          scrub: 1.5
         }
       })
       unionEls.forEach((shape, idx) => {
@@ -115,13 +227,86 @@ onMounted(() => {
         unionTl.fromTo(
           shape,
           { opacity: 0, y: yDist, scale: 0.85 },
-          { opacity: 1, y: 0, scale: 1, ease: 'power2.out', duration: 1 },
-          idx * 0.15
+          { opacity: 1, y: 0, scale: 1, ease: 'power1.inOut', duration: 0.7 },
+          idx * 0.1
         )
       })
+
+      if (!prefersReducedMotion()) {
+        unionEls.forEach((shape, idx) => {
+          gsap.to(shape, {
+            y: idx % 2 === 0 ? -25 : -45,
+            ease: 'none',
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: '#monogram-block',
+              start: 'bottom 30%',
+              end: 'bottom top',
+              scrub: 1
+            }
+          })
+        })
+
+        // Gentle continuous floating/shake on union shapes & monogram visual after reveal
+        const floatTweens: gsap.core.Tween[] = []
+        sectionRef.value?.querySelectorAll('.monogram-union-shape img').forEach((img, idx) => {
+          floatTweens.push(
+            gsap.to(img, {
+              x: idx % 2 === 0 ? 5 : -5,
+              y: idx % 2 === 0 ? -8 : 8,
+              rotation: idx % 2 === 0 ? 2.2 : -2.2,
+              duration: 2.6 + idx * 0.35,
+              repeat: -1,
+              yoyo: true,
+              ease: 'sine.inOut',
+              paused: true
+            })
+          )
+        })
+
+        const monogramMedia = sectionRef.value?.querySelectorAll('#monogram-block video, #monogram-block img')
+        if (monogramMedia && monogramMedia.length > 0) {
+          floatTweens.push(
+            gsap.to(monogramMedia, {
+              y: -7,
+              rotation: 0.8,
+              duration: 3.1,
+              repeat: -1,
+              yoyo: true,
+              ease: 'sine.inOut',
+              paused: true
+            })
+          )
+        }
+
+        const monogramVideo = sectionRef.value?.querySelector('#monogram-block video') as HTMLVideoElement | null
+        if (floatTweens.length > 0 || monogramVideo) {
+          ScrollTrigger.create({
+            trigger: '#monogram-block',
+            start: 'top bottom',
+            end: 'bottom top',
+            onEnter: () => {
+              floatTweens.forEach(t => t.play())
+              monogramVideo?.play().catch(() => {})
+            },
+            onEnterBack: () => {
+              floatTweens.forEach(t => t.play())
+              monogramVideo?.play().catch(() => {})
+            },
+            onLeave: () => {
+              floatTweens.forEach(t => t.pause())
+              monogramVideo?.pause()
+            },
+            onLeaveBack: () => {
+              floatTweens.forEach(t => t.pause())
+              monogramVideo?.pause()
+            }
+          })
+        }
+      }
     }
 
-    // 3. Frame.svg with union shapes fades in smoothly as monogram approaches center screen
+    // 3. Frame.svg with union shapes fades in smoothly as monogram scrolls past center screen
     const bottomFrame = sectionRef.value?.querySelector('.philosophy-bottom-frame')
     if (bottomFrame) {
       gsap.fromTo(
@@ -130,16 +315,41 @@ onMounted(() => {
         {
           scrollTrigger: {
             trigger: '#monogram-block',
-            start: 'top 50%',
-            end: 'center center',
-            scrub: 1
+            start: 'top center',
+            end: 'bottom 25%',
+            scrub: 1.5
           },
           opacity: 1,
           y: 0,
-          ease: 'power2.out'
+          ease: 'power1.inOut'
         }
       )
     }
+
+    // 4. Vector.svg: protruding root tips sprout in random order when centered in viewport
+    const vectorRoot = sectionRef.value?.querySelector('.philosophy-vector-root')
+    const tipReveals = sectionRef.value?.querySelectorAll('.vector-tip-reveal')
+    if (vectorRoot && tipReveals && tipReveals.length > 0 && !prefersReducedMotion()) {
+      gsap.set(tipReveals, { attr: { height: 0 }, opacity: 0 })
+      gsap.to(tipReveals, {
+        attr: { height: 260 },
+        opacity: 1,
+        duration: 0.55,
+        ease: 'power2.out',
+        stagger: {
+          amount: 1.15,
+          from: 'random'
+        },
+        scrollTrigger: {
+          trigger: vectorRoot,
+          start: 'center center',
+          refreshPriority: -1,
+          once: true
+        }
+      })
+    }
+
+    ScrollTrigger.refresh()
   }, sectionRef.value)
 })
 
@@ -152,41 +362,17 @@ onUnmounted(() => {
   <section
     id="brand-philosophy"
     ref="sectionRef"
-    class="py-20 lg:pt-32 lg:pb-[60px] relative overflow-visible transition-colors duration-300"
-    :style="{ backgroundColor: bgColor || '#FFFFFF' }"
+    class="py-20 lg:pt-20 lg:pb-[60px] relative overflow-visible transition-colors duration-300"
+    :style="{ backgroundColor: bgColor }"
   >
-    <!-- Water Drop & Fluid Expansion Effect Wrapper -->
-    <div class="water-drop-effect-wrapper absolute inset-0 z-0 pointer-events-none select-none overflow-hidden" aria-hidden="true">
-      <!-- Water Drop Item (Đồng màu xám bạc khói tinh khiết với background) -->
-      <div class="water-drop-item absolute left-1/2 -translate-x-1/2 top-0 pointer-events-none">
-        <svg width="40" height="56" viewBox="0 0 40 56" fill="none" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-[0_4px_16px_rgba(113,113,122,0.35)]">
-          <path d="M20 0C20 0 0 28 0 38C0 47.941 8.954 56 20 56C31.046 56 40 47.941 40 38C40 28 20 0 20 0Z" fill="url(#water_drop_grad)" stroke="rgba(255, 255, 255, 0.7)" stroke-width="0.8" />
-          <ellipse cx="14" cy="34" rx="4.5" ry="8" fill="white" fill-opacity="0.65" transform="rotate(-18 14 34)" />
-          <defs>
-            <linearGradient id="water_drop_grad" x1="20" y1="0" x2="20" y2="56" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#FFFFFF" stop-opacity="0.95" />
-              <stop offset="0.4" stop-color="#E4E4E7" stop-opacity="0.9" />
-              <stop offset="0.85" stop-color="#A1A1AA" stop-opacity="0.85" />
-              <stop offset="1" stop-color="#71717A" stop-opacity="0.95" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      <!-- Water Impact Ripples at bottom of cup (Tông xám khói thủy tinh cùng background) -->
-      <div class="water-ripples-container absolute top-[520px] lg:top-[640px] left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
-        <div class="water-splash-glow absolute w-64 h-32 rounded-[100%] bg-radial from-white/90 via-[#A1A1AA]/30 to-transparent blur-xl"></div>
-        <div class="water-ripple water-ripple-1 absolute w-[360px] h-[120px] rounded-[100%] border-2 border-[#71717A]/75"></div>
-        <div class="water-ripple water-ripple-2 absolute w-[540px] h-[180px] rounded-[100%] border border-[#A1A1AA]/55"></div>
-        <div class="water-ripple water-ripple-3 absolute w-[720px] h-[240px] rounded-[100%] border border-[#D4D4D8]/40"></div>
-      </div>
-    </div>
-
     <!-- Background Layers (Thứ tự Figma: Frame1 -> Vector -> Union -> Frame) -->
     <div class="philosophy-bg-layers absolute inset-0 z-0 pointer-events-none select-none overflow-hidden">
-      <div class="philosophy-cup-bg absolute inset-0 pointer-events-none">
-        <!-- 1. Frame1: Top luminosity texture / wave (1920x1339) -->
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1920px] max-w-none h-[1339px] pointer-events-none">
+      <div class="philosophy-cup-bg absolute inset-x-0 top-0 md:top-[1400px] bottom-0 pointer-events-none will-change-[clip-path,transform]">
+        <!-- 1. Frame1: Top luminosity texture / wave (1920x1339) with soft top fade -->
+        <div
+          class="absolute top-0 left-1/2 -translate-x-1/2 w-[1920px] max-w-none h-[1339px] pointer-events-none"
+          style="-webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 22%, black 100%); mask-image: linear-gradient(to bottom, transparent 0%, black 22%, black 100%);"
+        >
           <img
             src="/images/philosophy/Frame1.svg"
             alt="Luminosity wave texture"
@@ -195,12 +381,37 @@ onUnmounted(() => {
         </div>
 
         <!-- 2. Vector: Mid wave curve (1920x1008) -->
-        <div class="absolute top-[520px] lg:top-[650px] left-1/2 -translate-x-1/2 w-[1920px] max-w-none h-[1008px] pointer-events-none">
-          <img
-            src="/images/philosophy/Vector.svg"
-            alt="Mid wave decorative background"
-            class="w-full h-full object-contain"
-          />
+        <div class="philosophy-vector-root absolute top-[520px] lg:top-[650px] left-1/2 -translate-x-1/2 w-[1920px] max-w-none h-[1008px] pointer-events-none">
+          <svg
+            viewBox="0 0 1920 1008"
+            class="w-full h-full"
+            aria-label="Mid wave decorative background"
+            role="img"
+          >
+            <defs>
+              <mask id="vector-root-mask">
+                <!-- Phần thân trên giữ nguyên hiển thị -->
+                <rect x="0" y="0" width="1920" height="785" fill="white" />
+                <!-- Các phần ngọn rễ nhô ra bên dưới mọc ngẫu nhiên -->
+                <rect
+                  v-for="i in 20"
+                  :key="i"
+                  class="vector-tip-reveal"
+                  :x="(i - 1) * 96"
+                  y="750"
+                  width="100"
+                  height="260"
+                  fill="white"
+                />
+              </mask>
+            </defs>
+            <image
+              href="/images/philosophy/Vector.svg"
+              width="1920"
+              height="1008"
+              mask="url(#vector-root-mask)"
+            />
+          </svg>
         </div>
       </div>
 
@@ -231,37 +442,71 @@ onUnmounted(() => {
       />
     </div>
 
-    <div class="max-w-[1400px] mx-auto px-6 sm:px-8 xl:px-0 w-full relative z-10">
+    <div class="max-w-[1400px] mx-auto px-[15px] w-full relative z-10">
 
-      <!-- Header: Tiêu đề phụ (kèm dot) + Tiêu đề chính + Đoạn mở đầu -->
-      <div class="flex flex-col items-center text-center mb-[50px] lg:mb-[100px]">
-        <!-- Tiêu đề phụ (Có icon dot bên cạnh — Figma 1:916 gap 100px) -->
-        <div v-if="subtitle || title" class="flex items-center justify-center gap-2.5 mb-8 lg:mb-[100px]">
-          <img
-            src="/images/philosophy/dot-shape.svg"
-            alt="Icon"
-            class="w-6 h-6.5 object-contain shrink-0"
-          />
-          <span class="text-ds-24 font-bold text-[#141414] tracking-tight">
-            {{ subtitle || title }}
-          </span>
+      <!-- Pinned Intro Stage: Water Drop + 3-Step Storytelling Header -->
+      <div class="philosophy-intro-stage relative min-h-[540px] lg:min-h-[640px] flex flex-col items-center justify-center mb-[50px] lg:mb-[100px]">
+        <!-- Water Drop & Ripples pinned inside stage -->
+        <div class="water-drop-effect-wrapper absolute inset-0 z-0 pointer-events-none select-none overflow-hidden" aria-hidden="true">
+          <div class="water-drop-item absolute left-1/2 -translate-x-1/2 top-0 pointer-events-none">
+            <svg width="40" height="56" viewBox="0 0 40 56" fill="none" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-[0_4px_16px_rgba(113,113,122,0.35)]">
+              <path d="M20 0C20 0 0 28 0 38C0 47.941 8.954 56 20 56C31.046 56 40 47.941 40 38C40 28 20 0 20 0Z" fill="url(#water_drop_grad)" stroke="rgba(255, 255, 255, 0.7)" stroke-width="0.8" />
+              <ellipse cx="14" cy="34" rx="4.5" ry="8" fill="white" fill-opacity="0.65" transform="rotate(-18 14 34)" />
+              <defs>
+                <linearGradient id="water_drop_grad" x1="20" y1="0" x2="20" y2="56" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#FFFFFF" stop-opacity="0.95" />
+                  <stop offset="0.4" stop-color="#E4E4E7" stop-opacity="0.9" />
+                  <stop offset="0.85" stop-color="#A1A1AA" stop-opacity="0.85" />
+                  <stop offset="1" stop-color="#71717A" stop-opacity="0.95" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="water-ripples-container absolute top-[360px] lg:top-[480px] left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+            <div
+              class="water-splash-glow absolute w-64 h-32 rounded-[100%]"
+              style="background: radial-gradient(ellipse, rgba(255,255,255,0.9) 0%, rgba(161,161,170,0.28) 45%, transparent 72%);"
+            ></div>
+            <div class="water-ripple water-ripple-1 absolute w-[360px] h-[120px] rounded-[100%] border-2 border-[#71717A]/75"></div>
+            <div class="water-ripple water-ripple-2 absolute w-[540px] h-[180px] rounded-[100%] border border-[#A1A1AA]/55"></div>
+            <div class="water-ripple water-ripple-3 absolute w-[720px] h-[240px] rounded-[100%] border border-[#D4D4D8]/40"></div>
+          </div>
         </div>
 
-        <!-- Tiêu đề chính (Figma 1:994) -->
-        <h2
-          v-if="title && subtitle"
-          class="text-2xl sm:text-3xl lg:text-ds-36 font-semibold text-[#141414] w-full mx-auto mb-10"
-        >
-          {{ title }}
-        </h2>
+        <!-- Header: Subtitle (80% center -> top) + Title (Quote -> h2) + Intro -->
+        <div class="philosophy-header relative z-10 flex flex-col items-center text-center w-full">
+          <div v-if="subtitle || title" class="philosophy-subtitle-zoom flex items-center justify-center gap-2.5 mb-8 lg:mb-[80px] origin-center">
+            <img
+              src="/images/philosophy/dot-shape.svg"
+              alt="Icon"
+              class="w-6 h-6.5 object-contain shrink-0"
+            />
+            <span class="text-ds-24 font-bold text-[#141414] tracking-tight">
+              {{ subtitle || title }}
+            </span>
+          </div>
 
-        <!-- Đoạn văn mở đầu -->
-        <p
-          v-if="intro"
-          class="text-[#141414] text-ds-16 lg:text-ds-18 font-normal max-w-full mx-auto whitespace-pre-line text-center"
-        >
-          {{ intro }}
-        </p>
+          <div v-if="title && subtitle" class="philosophy-title-quote relative w-[90%] mx-auto mb-10">
+            <span aria-hidden="true" class="philosophy-quote-mark hidden md:block absolute -left-8 -top-6 text-7xl font-serif text-[#00d1bc] leading-none select-none opacity-0">“</span>
+            <h2 class="text-2xl sm:text-3xl lg:text-ds-36 font-semibold text-[#141414] leading-[1.45]">
+              <span
+                v-for="(word, idx) in titleWords"
+                :key="idx"
+                class="philosophy-title-word inline-block mr-[0.26em] last:mr-0"
+              >
+                {{ word }}
+              </span>
+            </h2>
+            <span aria-hidden="true" class="philosophy-quote-mark hidden md:block absolute -right-8 -bottom-10 text-7xl font-serif text-[#00d1bc] leading-none select-none opacity-0">”</span>
+          </div>
+
+          <p
+            v-if="intro"
+            class="philosophy-intro-reveal text-[#141414] text-ds-16 lg:text-ds-18 font-normal max-w-full mx-auto whitespace-pre-line text-center"
+          >
+            {{ intro }}
+          </p>
+        </div>
       </div>
 
       <!-- 4 Thẻ Nguyên Tố (Local SVG Cards + GSAP Interactive Animation) -->
@@ -282,7 +527,7 @@ onUnmounted(() => {
       <!-- Câu chuyện diễn giải (Figma 1:1005 — 20px/34px, chữ nhấn mạnh màu #0709a2) -->
       <div
         v-if="formattedStoryHtml"
-        class="max-w-full mx-auto text-[#141414] text-ds-16 sm:text-[20px] sm:leading-[34px] font-normal mb-5 text-left [&_p]:mb-5 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_b]:font-semibold [&_strong]:text-[#0709a2] [&_b]:text-[#0709a2] [&_h3]:text-[#0709a2] [&_h3]:text-ds-24 [&_h3]:font-semibold [&_h4]:text-[#0709a2] [&_h4]:text-ds-24 [&_h4]:font-semibold"
+        class="philosophy-story-reveal max-w-full mx-auto text-[#141414] text-ds-16 sm:text-[20px] sm:leading-[34px] font-normal mb-5 text-left [&_p]:mb-5 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_b]:font-semibold [&_strong]:text-[#0709a2] [&_b]:text-[#0709a2] [&_h3]:text-[#0709a2] [&_h3]:text-ds-24 [&_h3]:font-semibold [&_h4]:text-[#0709a2] [&_h4]:text-ds-24 [&_h4]:font-semibold"
         v-html="formattedStoryHtml"
       />
 
@@ -295,7 +540,7 @@ onUnmounted(() => {
         <!-- Khối hộp icon Monogram (Trái) -->
         <div
           v-if="symbolVideo || symbolIcon"
-          class="bg-[#b0f3eb] rounded-[32px] sm:rounded-[40px] size-[280px] sm:size-[380px] lg:size-[460px] xl:size-[500px] shrink-0 flex items-center justify-center p-8 select-none overflow-hidden"
+          class="monogram-card bg-[#b0f3eb] rounded-[32px] sm:rounded-[40px] size-[280px] sm:size-[380px] lg:size-[460px] xl:size-[500px] shrink-0 flex items-center justify-center p-8 select-none overflow-hidden"
         >
           <video
             v-if="symbolVideo"
@@ -321,13 +566,13 @@ onUnmounted(() => {
         <div class="flex-1 flex flex-col gap-4 text-left">
           <h3
             v-if="symbolTitle"
-            class="text-2xl sm:text-3xl lg:text-ds-36 font-semibold text-[#141414]"
+            class="monogram-text-reveal text-2xl sm:text-3xl lg:text-ds-36 font-semibold text-[#141414]"
           >
             {{ symbolTitle }}
           </h3>
           <p
             v-if="symbolDesc"
-            class="text-[#141414] text-ds-16 lg:text-ds-18 font-normal"
+            class="monogram-text-reveal text-[#141414] text-ds-16 lg:text-ds-18 font-normal"
           >
             {{ symbolDesc }}
           </p>
@@ -335,7 +580,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Đoạn text kết luận (Dưới khối Monogram) -->
-      <div v-if="closingText" class="max-w-full mx-auto text-center">
+      <div v-if="closingText" class="philosophy-story-reveal max-w-full mx-auto text-center">
         <p class="text-[#141414] text-ds-16 lg:text-ds-18 font-normal">
           {{ closingText }}
         </p>

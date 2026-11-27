@@ -73,7 +73,7 @@ const socialLinks = [
 
     <!-- Main Footer Container -->
     <div
-      class="max-w-[1400px] mx-auto px-6 sm:px-8 xl:px-0 flex flex-col gap-14 sm:gap-20 lg:gap-[91px] relative z-10"
+      class="max-w-[1400px] mx-auto px-[15px] flex flex-col gap-14 sm:gap-20 lg:gap-[91px] relative z-10"
     >
       <!-- Top Section -->
       <div

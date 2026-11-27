@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useStoryMotion } from '~/composables/useStoryMotion'
+
+if (import.meta.client) gsap.registerPlugin(ScrollTrigger)
+
 interface Props {
   subtitle?: string
   title?: string
@@ -13,15 +20,60 @@ interface Props {
 }
 
 defineProps<Props>()
+
+const sectionRef = ref<HTMLElement | null>(null)
+let ctx: gsap.Context | null = null
+const { prefersReducedMotion, revealMaskedLines } = useStoryMotion()
+
+onMounted(() => {
+  if (!sectionRef.value) return
+  ctx = gsap.context(() => {
+    revealMaskedLines('.vm-header', {
+      trigger: sectionRef.value,
+      start: 'top 82%'
+    })
+
+    if (prefersReducedMotion()) return
+
+    const cards = [
+      { sel: '.vision-card', fromX: -24 },
+      { sel: '.mission-card', fromX: 24 }
+    ]
+    cards.forEach(({ sel, fromX }) => {
+      const el = sectionRef.value?.querySelector(sel)
+      if (!el) return
+      gsap.fromTo(
+        el,
+        { x: fromX, opacity: 0 },
+        {
+          x: 0,
+          opacity: 1,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 80%',
+            end: 'center 60%',
+            scrub: 0.6
+          }
+        }
+      )
+    })
+  }, sectionRef.value)
+})
+
+onUnmounted(() => {
+  ctx?.revert()
+})
 </script>
 
 <template>
   <section
     id="vision-mission"
+    ref="sectionRef"
     class="pt-20 lg:pt-32 pb-8 lg:pb-10 relative overflow-hidden transition-colors duration-300"
-    :style="{ backgroundColor: bgColor || '#F0F0F0' }"
+    :style="{ backgroundColor: bgColor }"
   >
-    <div class="max-w-[1400px] mx-auto px-6 sm:px-8 xl:px-0">
+    <div class="max-w-[1400px] mx-auto px-[15px]">
       
       <!-- Section Header Badge & Subtitle (Figma node 1:837) -->
       <div class="vm-header flex flex-col items-center justify-center text-center mb-12 lg:mb-[100px]">
@@ -31,7 +83,7 @@ defineProps<Props>()
             <img src="/images/company/dot.svg" alt="dot" class="w-full h-full">
           </div>
           <span class="text-ds-24 font-bold text-[#141414] tracking-tight">
-            {{ subtitle || 'Tầm nhìn - Sứ mệnh - Giá trị cốt lõi' }}
+            {{ subtitle }}
           </span>
         </div>
 
@@ -53,12 +105,12 @@ defineProps<Props>()
       </div>
 
       <!-- 2 Cards Grid: Tầm nhìn & Sứ mệnh (Figma node 1:840) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-[50px] w-full">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-[50px] w-full">
         
         <!-- Card 1: Tầm nhìn (Figma node 1:841) -->
         <div
           v-if="visionText"
-          class="vision-card relative rounded-[20px] border border-[#e3eef8] px-6 sm:px-10 py-8 lg:px-10 lg:py-8 overflow-hidden flex flex-col justify-center items-center text-center min-h-[204px] shadow-2xs"
+          class="vision-card relative rounded-[20px] border border-[#e3eef8] px-5 py-6 md:px-6 md:py-7 lg:px-10 lg:py-8 overflow-hidden flex flex-col justify-center items-center text-center min-h-[180px] lg:min-h-[204px] shadow-2xs"
         >
           <!-- Eye Icon Watermark (Figma node 1:842) -->
           <img
@@ -69,8 +121,8 @@ defineProps<Props>()
 
           <!-- Content overlay -->
           <div class="relative z-10 w-full flex flex-col items-center">
-            <h3 class="text-2xl sm:text-3xl lg:text-ds-36 font-bold text-[#141414] mb-5">
-              {{ visionTitle || 'Tầm nhìn' }}
+            <h3 class="text-2xl sm:text-3xl lg:text-ds-36 font-bold text-[#141414] mb-3 lg:mb-5">
+              {{ visionTitle }}
             </h3>
             <p class="text-[#141414] text-ds-16 sm:text-ds-18 font-normal max-w-[480px]">
               {{ visionText }}
@@ -81,7 +133,7 @@ defineProps<Props>()
         <!-- Card 2: Sứ mệnh (Figma node 1:850) -->
         <div
           v-if="missionItems && missionItems.length > 0"
-          class="mission-card relative rounded-[20px] border border-[#e3eef8] px-6 sm:px-10 py-8 lg:px-10 lg:py-8 overflow-hidden flex flex-col justify-center items-center text-center min-h-[204px] shadow-2xs"
+          class="mission-card relative rounded-[20px] border border-[#e3eef8] px-5 py-6 md:px-6 md:py-7 lg:px-10 lg:py-8 overflow-hidden flex flex-col justify-center items-center text-center min-h-[180px] lg:min-h-[204px] shadow-2xs"
         >
           <!-- Target Icon Watermark (Figma node 1:851) -->
           <img
@@ -92,8 +144,8 @@ defineProps<Props>()
 
           <!-- Content overlay -->
           <div class="relative z-10 w-full flex flex-col items-center">
-            <h3 class="text-2xl sm:text-3xl lg:text-ds-36 font-bold text-[#141414] mb-5">
-              {{ missionTitle || 'Sứ mệnh' }}
+            <h3 class="text-2xl sm:text-3xl lg:text-ds-36 font-bold text-[#141414] mb-3 lg:mb-5">
+              {{ missionTitle }}
             </h3>
             <ul class="flex flex-col gap-2.5 max-w-[480px] text-center">
               <li

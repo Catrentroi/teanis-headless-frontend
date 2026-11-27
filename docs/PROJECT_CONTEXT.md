@@ -168,41 +168,37 @@ landing-nuxt/
 
 ## 6. Nhật Ký Công Việc (Recent Work Log)
 
-### Phiên làm việc: 20/11/2026 (Chiều & Cuối ngày) - Rolling Window
-- **GSAP Animation 4 Thẻ Core Values (CoreValuesSection)**:
-  - Ghim màn hình (`pin: true`, `scrub: 1.2`, `end: '+=2400'`) tuần tự 5 bước xuất hiện 4 thẻ (S $\rightarrow$ F $\rightarrow$ P $\rightarrow$ B).
-  - Tự động nháy hover flash màu (~0.7s) khi từng thẻ xuất hiện, làm mờ các thẻ khác (`opacity: 0.2`) để focus thị giác, sau đó trượt vào ô grid.
-  - Cả 4 thẻ sáng rõ $\rightarrow$ Vòng xoay mũi tên bung nở và quay vô tận; hỗ trợ chạy ngược 2 chiều tuần tự mượt mà khi scroll lên.
-- **Hiệu Ứng Giọt Nước & Background Ly (BrandPhilosophySection)**:
-  - Thay thế superhero landing bằng giọt nước pha lê xám khói thủy tinh rơi chậm rãi (1.6s) cùng tone background `Vector.svg`.
-  - Chạm đáy loang nở thành chiếc ly trong 2.2s kết hợp fade in (`0 -> 1`) và tan sương mờ (`blur(12px) -> 0px`); tự động đảo chiều khi cuộn lên.
-- **Tối Ưu & Đồng Bộ Các Section Toàn Trang**:
-  - `TimelineSection`: Ghim full màn hình (`min-h-screen`, `pin: true`), tách 8 file SVG line & disc, vẽ runway line và bung mốc thời gian tuần tự.
-  - `MetricsSection`: Loại bỏ toàn bộ `translateY`, tối ưu counter odometer mượt mà.
-  - `VisionMissionSection`: Chuyển thành section tĩnh 100% theo yêu cầu.
+### Phiên làm việc: 26/11/2026 (Cả ngày) - Rolling Window
+- **Intro Logo Overlay (`IntroOverlay.vue` & `index.vue`)**:
+  - Tạo màn hình mở đầu 3 pha: khối Cyan bay từ trái vào giữa tách thành 2 hàng ngang vuông vức → lùi lấy đà & bẻ phối cảnh 3D (`rotateY` + `rotation`) thành dáng logo Teanis → vệt gió quét ngang, 3 khối bay vút hẳn ra ngoài khung hình, xé mây zoom-in nối vào `HeroSection` (`introDone`).
+- **Dọn Mock/Fallback & Tinh Chỉnh GSAP Toàn Trang**:
+  - Gỡ bỏ `withDefaults`/mock cứng trong `CompanyInfoSection`, `TimelineSection`, `PreFooterCtaSection` (chuyển sang `v-if` chuẩn Ponytail); thêm hiệu ứng sóng gió quét ngang `.company-wind-sweep` nối từ `Hero` sang `CompanyInfoSection`.
+  - Chuẩn hóa `revealMaskedLines` (`useStoryMotion.ts`) sang `y + opacity` (`power2.inOut`, `1.3s`, `once: true`) cho `TimelineSection`, `CoreValuesSection`, `BrandPhilosophySection`; thêm mask ngọn rễ mọc ngẫu nhiên cho `Vector.svg` và chỉnh `unionTl` (`top bottom` → `bottom 40%`).
+  - Sửa lỗi sót chấm trắng `#float-layer-box` và `overflow-visible` trong `illustation.svg` / `HeroSection.vue` (giữ mouse parallax, bỏ scroll parallax gây giật).
+- **Responsive Mobile/Tablet & Global Layout**:
+  - Đồng bộ `px-[15px]` trên mọi breakpoint cho toàn bộ section, `TheHeader` (đưa CTA sát hamburger trên tablet) và `TheFooter`; ẩn thanh cuộn toàn trang trong `figma-tokens.css`.
+  - `CoreValuesSection`: dùng `gsap.matchMedia()` bỏ `pin` dưới `1024px` và đồng bộ `aspect-[684/284]`; `TimelineSection`: thêm nút điều hướng & thanh scroll ngang; `VisionMissionSection` & `HeroSection`: tối ưu padding và overlay text trên SVG ở mobile/tablet.
 
-*(Lịch sử các phiên làm việc chi tiết trước ngày 19/11/2026 đã được lưu trữ tại [docs/archive/WORK_LOG_2026_11.md](file:///d:/wordpress/headless/landing-nuxt/docs/archive/WORK_LOG_2026_11.md)).*
+### Phiên làm việc: 25/11/2026 (Chiều & Cuối ngày) - Rolling Window
+- **Tinh gọn Section Components (`/ponytail`)**:
+  - Tách Video Lightbox Modal từ `CompanyInfoSection.vue` sang `app/components/ui/VideoModal.vue` (`v-model`, `Escape`, khóa scroll `body`).
+  - Chuẩn hóa `withDefaults(defineProps<Props>(), ...)` thay cho fallback `|| '...'` rải rác trong `CompanyInfoSection.vue`, `PreFooterCtaSection.vue`, `TimelineSection.vue`, `CoreValuesSection.vue`.
+- **Cải tổ GSAP Scrollytelling & Lenis Smooth Scroll**:
+  - Cài `lenis` (`^1.3.28`) và đồng bộ với `ScrollTrigger.update` + `gsap.ticker` + `page:finish` refresh trong `app/plugins/gsap.client.ts`; tạo `app/composables/useStoryMotion.ts` (`getHeaderOffset`, `revealMaskedLines`).
+  - Nâng cấp nhịp kể chuyện toàn trang: `HeroSection` exit parallax, `CompanyInfoSection` masked reveal & video scale, `TimelineSection` header-aware pin & active milestone focus, `VisionMissionSection` mở đối xứng, `PreFooterCtaSection` reveal không động trục Y.
+  - `CoreValuesSection` $\rightarrow$ `BrandPhilosophySection`: Khắc phục header che tiêu đề bằng `getHeaderOffset()`, thêm bước ép 4 thẻ vào giữa rồi rơi xuống đáy nối sang giọt nước; thêm dao động lơ lửng liên tục (`play/pause` theo viewport) cho union shapes & monogram.
 
-### Phiên làm việc: 19/11/2026 (Sáng & Chiều) - Rolling Window
-- **Zero-Boilerplate & Tinh gọn Codebase (/ponytail)**:
-  - Thiết lập [docs/DESIGN_PATTERNS.md](file:///d:/wordpress/headless/landing-nuxt/docs/DESIGN_PATTERNS.md) (GSAP SSR-Safe, WPGraphQL auto-cleaner, Node UTF-8 sync script).
-  - Thu gọn `index.vue` và `about.vue` (-85% code) bằng cú pháp `v-bind="pageData.sectionName"` và composable `usePageSeo()`.
-  - Refactor `useAboutPage.ts` (294 -> 147 dòng, -50%), xóa bỏ triệt để việc ép chuỗi rỗng `|| ''` để phục hồi default props và `v-if`.
-  - Tinh giản Section components (`CoreValuesSection.vue`, `CompanyInfoSection.vue`), dọn sạch code trùng lặp.
-- **Gia cố Bảo mật Production (Enterprise-Grade Security)**:
-  - Ẩn hoàn toàn domain WordPress khỏi Client JS bundle (chuyển `wpDomain`, `wpGraphqlUrl`, `wpApiUrl` vào Private Runtime Config).
-  - Kích hoạt bộ lọc chặn quét cây trường ACF (`__schema`, `__type`) và chặn dò danh mục Admin (`users`) tại `server/api/graphql.post.ts` (403 Forbidden).
-  - Xóa sạch key hardcode `teanis_secret_lead_2026` trong code và tài liệu; chuẩn hóa placeholder an toàn trong [.env.example](file:///d:/wordpress/headless/landing-nuxt/.env.example).
-  - Vô hiệu hóa cache cho toàn bộ route API (`routeRules: { '/api/**': { cache: false, isr: false } }`).
-- **Triển khai Production Hoàn tất (Vercel + Pantheon)**:
-  - Đồng bộ thành công 79 trường ACF Pro lên Pantheon Cloud qua webhook sync `?sync_acf=secret123`.
-  - Xử lý triệt để lỗi mất Body trên Vercel do lệch schema và bộ đệm ISR 1 tiếng.
-  - Tự động suy luận link REST API từ `WP_GRAPHQL_URL` và nâng cấp xử lý lỗi form tại `server/api/contact.post.ts`.
-  - Website production `https://teanis-headless-frontend.vercel.app/` kết nối trực tiếp Pantheon hoạt động mượt mà 100%.
-- **Kiến trúc Hoạt họa SVG & Tối ưu Hiệu năng (Hero Illustration Animation)**:
-  - Xây dựng component đa năng `InlineSvg.vue` (tự động bung SVG ra HTML DOM, chống cache stale, giữ nguyên tỷ lệ responsive).
-  - Khắc phục triệt để lỗi nhân vật không lắc lư: trỏ `illustrationSrc` về SVG cục bộ có gắn định danh DOM, thêm bộ tự động wrap nhóm `ensureSvgGroups`, định vị chuẩn xác tâm xoay SVG bằng `svgOrigin` (`195 395` cho nhân vật trái, `636 385` cho nhân vật phải).
-  - Tối ưu hiệu năng 60fps & tiết kiệm CPU: Sử dụng `IntersectionObserver` tự động tạm dừng (pause) toàn bộ tween khi cuộn ra khỏi màn hình và tiếp tục (resume) khi vào lại viewport.
+### Phiên làm việc: 25/11/2026 (Sáng) - Rolling Window
+- **Chuẩn hóa UI/Layout Theo Figma (Header $\rightarrow$ Footer)**:
+  - `TheHeader`: Bỏ magnetic/parallax ở nút CTA, giảm hover logo xuống `hover:scale-[1.03]`.
+  - `HeroSection`: Dùng `Tech.svg` đúng kích thước `1170x283`, dời ambient glow lên trên tiêu đề, bung minh họa SVG tràn phải khỏi `max-w-[1400px]`.
+  - `CompanyInfoSection`, `TimelineSection`, `CoreValuesSection`, `BrandPhilosophySection`, `TheFooter`: Đồng bộ padding/margin/gap và màu nhấn `#0709a2` theo đúng Figma Nodes (`1:664`, `1:825`, `1:861`, `1:916`, `1:1250`).
+- **Tối Ưu GSAP & Clean Code (`/ponytail`)**:
+  - `CoreValuesSection`: Thêm `clearProps: 'opacity,color'` khi `progress >= 0.88` để giữ nguyên hover đổi SVG nền; gom 4 bước animation lặp thành mảng `steps`.
+  - `BrandPhilosophySection`: Chuyển hiệu ứng giọt nước sang `scrub: 1` (`top 65%`, `+=850`) và `clip-path: circle(...)` trên `.philosophy-cup-bg`; tách khối 4 thẻ nguyên tố sang `PhilosophyElementsGrid.vue` (giảm từ 872 xuống 353 dòng).
+  - `app/queries/aboutPage.ts`: Tách câu GraphQL query ra khỏi `useAboutPage.ts` và rút gọn `usePageSeo.ts`, `HeroSection.vue`; `npm run build` pass 100%.
+
+*(Lịch sử các phiên làm việc chi tiết trước ngày 25/11/2026 đã được lưu trữ tại [docs/archive/WORK_LOG_2026_11.md](file:///d:/wordpress/headless/landing-nuxt/docs/archive/WORK_LOG_2026_11.md)).*
 
 ---
 

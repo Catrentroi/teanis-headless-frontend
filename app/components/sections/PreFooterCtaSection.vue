@@ -16,27 +16,14 @@ const PRE_FOOTER_ILLUSTRATION = '/images/footer/cta-frame.svg'
 
 const resolvedIllustration = computed(() => {
   const raw = props.illustration?.trim()
-  if (
-    !raw ||
-    raw.includes('/images/illustation.svg') ||
-    raw.includes('illustrator-layer2.svg')
-  ) {
+  if (!raw || raw.includes('/images/illustation.svg') || raw.includes('illustrator-layer2.svg')) {
     return PRE_FOOTER_ILLUSTRATION
   }
   return raw
 })
 
-const defaultHeading = "Let’s Talk About Business Solutions With Us"
-const currentHeading = computed(() => props.heading || defaultHeading)
-
-const isWithUsSplit = computed(() => {
-  return currentHeading.value.includes('With Us')
-})
-
-const headingBeforeWithUs = computed(() => {
-  if (!isWithUsSplit.value) return currentHeading.value
-  return currentHeading.value.replace('With Us', '').trim()
-})
+const isWithUsSplit = computed(() => props.heading?.includes('With Us') ?? false)
+const headingBeforeWithUs = computed(() => isWithUsSplit.value ? (props.heading ?? '').replace('With Us', '').trim() : (props.heading ?? ''))
 
 const cardBgColor = computed(() => {
   if (
@@ -67,7 +54,7 @@ const cardBgColor = computed(() => {
 
     <!-- CTA card: chồng mép dưới minh họa, không bị footer cắt (padding-bottom section) -->
     <div
-      class="pointer-events-none absolute bottom-0 left-0 right-0 z-20 translate-y-1/2 px-6 sm:px-8 xl:px-0"
+      class="pointer-events-none absolute bottom-0 left-0 right-0 z-20 translate-y-1/2 px-[15px]"
     >
       <div
         class="cta-card-box pointer-events-auto relative mx-auto flex max-w-[1400px] flex-col items-start justify-between gap-8 overflow-hidden rounded-[24px] px-6 py-8 shadow-2xl transition-colors duration-300 sm:flex-row sm:items-center sm:rounded-[32px] sm:px-12 sm:py-12 lg:gap-[56px] lg:px-[100px] lg:py-[72px] md:flex-row md:items-center"
@@ -84,24 +71,24 @@ const cardBgColor = computed(() => {
           />
         </div>
 
-        <div class="relative z-10 max-w-3xl">
+        <div v-if="heading" class="relative z-10 max-w-3xl">
           <h2 class="text-3xl font-medium tracking-tight text-[#141414] sm:text-4xl lg:text-ds-48">
             <template v-if="isWithUsSplit">
               <span class="block sm:inline">{{ headingBeforeWithUs }}</span>
               <span class="ml-1 font-medium text-white sm:ml-2">With Us</span>
             </template>
             <template v-else>
-              {{ currentHeading }}
+              {{ heading }}
             </template>
           </h2>
         </div>
 
-        <div class="relative z-10 shrink-0 self-start">
+        <div v-if="buttonText && buttonLink" class="relative z-10 shrink-0 self-start">
           <NuxtLink
-            :to="buttonLink || '/#contact'"
+            :to="buttonLink"
             class="group inline-flex h-[50px] shrink-0 select-none items-center gap-3 rounded-[8px] bg-[#0709a2] py-1 pl-5 pr-1 text-white shadow-md transition-all hover:scale-105 hover:bg-[#050780] active:scale-95 sm:gap-5"
           >
-            <span class="text-ds-18 font-normal sm:text-ds-20">{{ buttonText || 'Get in touch' }}</span>
+            <span class="text-ds-18 font-normal sm:text-ds-20">{{ buttonText }}</span>
             <span class="flex size-[42px] shrink-0 items-center justify-center rounded-[4px]">
               <img
                 src="/images/footer/arrow-up-right.svg"

@@ -45,11 +45,11 @@ onUnmounted(() => {
 <template>
   <!-- Sticky Header Wrapper matching Figma node 1:2479 (nav-sticky) -->
   <header
-    class="fixed top-0 left-0 right-0 z-50 lg:pt-[20px] pointer-events-none transition-all duration-300"
+    class="fixed top-0 left-0 right-0 z-50 px-[15px] pt-[20px] pointer-events-none transition-all duration-300"
   >
     <!-- Centered 1400px floating navbar matching Figma node 1:2480 (Nav) with solid white background -->
     <nav
-      class="pointer-events-auto relative overflow-hidden w-full max-w-[1400px] mx-auto rounded-[16px] transition-all duration-300 flex items-center justify-between px-6 sm:px-8 lg:px-10 bg-white"
+      class="pointer-events-auto relative overflow-hidden w-full max-w-[1400px] mx-auto rounded-[16px] transition-all duration-300 flex items-center justify-between px-[15px] bg-white"
       :class="isScrolled
         ? 'shadow-[0px_8px_25px_0px_rgba(0,0,0,0.15)] rounded-[16px] h-[84px] sm:h-[100px]'
         : 'shadow-[0px_0px_20px_0px_rgba(0,0,0,0.15)] rounded-[16px] pt-0 h-[84px] sm:h-[100px]'"
@@ -88,19 +88,38 @@ onUnmounted(() => {
         </a>
       </div>
 
-      <!-- CTA Button (Figma node 1:2535) -->
-      <div class="hidden sm:block">
-        <NuxtLink
-          to="/contact"
-          class="bg-[#0709a2] hover:bg-[#060882] text-white rounded-[8px] pl-5 pr-1 py-1 h-[48px] inline-flex items-center gap-3 sm:gap-4 transition-shadow hover:shadow-lg hover:shadow-[#0709a2]/25 shadow-sm"
+      <!-- Right Actions: CTA Button + Hamburger (mobile/tablet) -->
+      <div class="flex items-center gap-3">
+        <!-- CTA Button (Figma node 1:2535) -->
+        <div class="hidden sm:block">
+          <NuxtLink
+            to="/contact"
+            class="bg-[#0709a2] hover:bg-[#060882] text-white rounded-[8px] pl-5 pr-1 py-1 h-[48px] inline-flex items-center gap-3 sm:gap-4 transition-shadow hover:shadow-lg hover:shadow-[#0709a2]/25 shadow-sm"
+          >
+            <span class="text-ds-18 sm:text-ds-20 font-normal whitespace-nowrap">Get in touch</span>
+            <div class="size-[40px] rounded-[4px] flex items-center justify-center shrink-0 transition-transform group-hover:translate-x-1">
+              <img
+                src="/images/footer/arrow-up-right.svg"
+                alt=""
+                class="size-6"
+              />
+            </div>
+          </NuxtLink>
+        </div>
+
+        <!-- Hamburger (mobile/tablet) -->
+        <button
+          class="lg:hidden p-2.5 rounded-lg text-gray-700 hover:text-[#0709a2] hover:bg-gray-100 transition-colors"
+          aria-label="Toggle menu"
+          @click="toggleMenu"
         >
-          <span class="text-ds-18 sm:text-ds-20 font-normal whitespace-nowrap">Get in touch</span>
-          <div class="size-[40px] rounded-[4px] flex items-center justify-center shrink-0 transition-transform group-hover:translate-x-1">
-            <svg class="size-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
-            </svg>
-          </div>
-        </NuxtLink>
+          <svg v-show="!isMenuOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <svg v-show="isMenuOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       <!-- Reading Progress Bar (2.5px) -->
@@ -108,20 +127,6 @@ onUnmounted(() => {
         class="absolute bottom-0 left-0 h-[2.5px] bg-gradient-to-r from-[#00d1bc] via-[#20e9d6] to-[#0709a2] transition-[width] duration-75 pointer-events-none"
         :style="{ width: `${scrollProgress}%` }"
       />
-
-      <!-- Hamburger (mobile) -->
-      <button
-        class="lg:hidden p-2.5 rounded-lg text-gray-700 hover:text-[#0709a2] hover:bg-gray-100 transition-colors"
-        aria-label="Toggle menu"
-        @click="toggleMenu"
-      >
-        <svg v-show="!isMenuOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-        <svg v-show="isMenuOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
     </nav>
 
     <!-- Mobile Dropdown Menu -->

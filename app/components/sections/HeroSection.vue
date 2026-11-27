@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import InlineSvg from '~/components/ui/InlineSvg.vue'
 
 interface Props {
@@ -13,9 +14,12 @@ interface Props {
   bgColor?: string
   bgImage?: string
   hashtags?: string[]
+  introDone?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  introDone: true
+})
 
 const sectionRef = ref<HTMLElement | null>(null)
 let ctx: gsap.Context | null = null
@@ -60,6 +64,7 @@ const illustrationSrc = computed(() => {
 })
 
 let cachedSvg: SVGSVGElement | null = null
+const isHeroVisible = ref(true)
 let isSectionVisible = true
 
 // Danh sách các tween đang chạy vĩnh viễn - để pause/resume với IntersectionObserver
@@ -164,8 +169,8 @@ function animateSvgPaths(svg: SVGSVGElement) {
     idleTweens.push(tRight)
   }
 
-  // Nếu section đang ngoài viewport thì pause ngay lập tức để tiết kiệm tài nguyên
-  if (!isSectionVisible) {
+  // Nếu section đang ngoài viewport hoặc đang chờ intro thì pause để tiết kiệm tài nguyên
+  if (!isSectionVisible || !props.introDone) {
     idleTweens.forEach(t => t.pause())
   }
 }
@@ -176,7 +181,9 @@ function setupIntersectionObserver() {
   observer = new IntersectionObserver(
     ([entry]) => {
       isSectionVisible = entry.isIntersecting
-      idleTweens.forEach(t => (isSectionVisible ? t.resume() : t.pause()))
+      isHeroVisible.value = entry.isIntersecting
+      const shouldRun = isSectionVisible && props.introDone
+      idleTweens.forEach(t => (shouldRun ? t.resume() : t.pause()))
     },
     { threshold: 0.05 }
   )
@@ -190,41 +197,64 @@ function onSvgLoaded(svg: SVGSVGElement) {
   }
 }
 
-// Subtle 3D mouse parallax on desktop (> 1024px)
+// Subtle mouse parallax on desktop (> 1024px)
 function onHeroMouseMove(e: MouseEvent) {
   if (!sectionRef.value || window.innerWidth < 1024) return
-  const { clientX, clientY } = e
-  const { innerWidth, innerHeight } = window
-  const xRatio = (clientX / innerWidth - 0.5) * 2
-  const yRatio = (clientY / innerHeight - 0.5) * 2
+  const xRatio = (e.clientX / window.innerWidth - 0.5) * 2
+  const yRatio = (e.clientY / window.innerHeight - 0.5) * 2
 
   gsap.to('.hero-illustration', {
     x: xRatio * -14,
     y: yRatio * -10,
     duration: 0.8,
-    ease: 'power1.out'
+    ease: 'power1.out',
+    overwrite: 'auto'
   })
 }
 
 function onHeroMouseLeave() {
-  gsap.to(['.hero-illustration'], {
+  gsap.to('.hero-illustration', {
     x: 0,
     y: 0,
     duration: 1,
-    ease: 'power2.out'
+    ease: 'power2.out',
+    overwrite: 'auto'
   })
 }
 
 onMounted(() => {
   if (!sectionRef.value) return
+  gsap.registerPlugin(ScrollTrigger)
+
   ctx = gsap.context(() => {
-    // Choreographed entrance timeline
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
-    tl.from('.hero-badge', { y: -24, opacity: 0, duration: 0.7 })
-      .from('.hero-title-line', { y: 40, opacity: 0, duration: 0.8, stagger: 0.15 }, '-=0.4')
-      .from('.hero-desc', { y: 20, opacity: 0, duration: 0.7 }, '-=0.4')
-      .from('.hero-cta', { scale: 0.9, opacity: 0, duration: 0.6, ease: 'back.out(1.6)' }, '-=0.4')
-      .from('.hero-illustration', { opacity: 0, x: 45, scale: 0.96, duration: 1 }, '-=0.7')
+    // Choreographed entrance timeline (waits for introDone if intro overlay is active)
+    const tl = gsap.timeline({
+      defaults: { ease: 'power3.out' },
+      paused: !props.introDone
+    })
+    const addEntrance = (selector: string, vars: gsap.TweenVars, position?: gsap.Position) => {
+      if (sectionRef.value?.querySelector(selector)) {
+        tl.from(selector, vars, position)
+      }
+    }
+    addEntrance('.hero-badge', { y: -24, opacity: 0, duration: 0.7 })
+    addEntrance('.hero-title-line', { y: 40, opacity: 0, duration: 0.8, stagger: 0.15 }, '-=0.4')
+    addEntrance('.hero-desc', { y: 20, opacity: 0, duration: 0.7 }, '-=0.4')
+    addEntrance('.hero-cta', { scale: 0.9, opacity: 0, duration: 0.6, ease: 'back.out(1.6)' }, '-=0.4')
+    addEntrance('.hero-illustration', { opacity: 0, x: 45, scale: 0.96, duration: 1 }, '-=0.7')
+
+    if (!props.introDone) {
+      const stopWatch = watch(
+        () => props.introDone,
+        (done) => {
+          if (done) {
+            tl.play()
+            if (isSectionVisible) idleTweens.forEach(t => t.resume())
+            stopWatch()
+          }
+        }
+      )
+    }
 
     if (cachedSvg) {
       animateSvgPaths(cachedSvg)
@@ -245,13 +275,12 @@ onUnmounted(() => {
 <template>
   <section
     ref="sectionRef"
-    class="relative overflow-hidden flex flex-col justify-between pt-[150px] sm:pt-[200px] lg:pt-[120px]"
+    class="relative overflow-hidden flex flex-col justify-between pt-[130px] sm:pt-[160px] lg:pt-[120px] min-h-[600px] lg:min-h-[840px]"
     :style="{
       backgroundColor: bgColor || (!bgImage ? '#20e9d6' : undefined),
       backgroundImage: bgImage ? `url(${bgImage})` : (bgColor ? undefined : 'linear-gradient(180deg, #20e9d6 0%, #17c8b7 100%)'),
       backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      minHeight: '840px'
+      backgroundPosition: 'center'
     }"
     @mousemove="onHeroMouseMove"
     @mouseleave="onHeroMouseLeave"
@@ -264,14 +293,17 @@ onUnmounted(() => {
       class="absolute right-0 bottom-[52px] lg:bottom-[64px] w-[580px] sm:w-[860px] lg:w-[1171px] translate-y-16 max-w-none h-auto select-none pointer-events-none"
     />
 
-    <!-- Soft ambient glow positioned above "SHAPE UP FOR GROWTH" -->
-    <div class="absolute top-[12%] left-[4%] w-[460px] h-[460px] rounded-full bg-white/25 blur-3xl pointer-events-none" />
+    <!-- Soft ambient glow positioned above "SHAPE UP FOR GROWTH" (radial gradient, no expensive blur filter) -->
+    <div
+      class="absolute top-[12%] left-[4%] w-[460px] h-[460px] rounded-full pointer-events-none"
+      style="background: radial-gradient(circle, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 70%);"
+    />
 
     <!-- Row 1: Main Content Container (max-w: 1400px) matching Figma node 1:2536 -->
-    <div class="relative z-10 max-w-[1400px] mx-auto px-6 sm:px-8 xl:px-0 w-full flex flex-col lg:flex-row items-center justify-between gap-10 xl:gap-[87px] my-[65px]">
+    <div class="relative z-10 max-w-[1400px] mx-auto px-[15px] w-full flex flex-col lg:flex-row items-center justify-between gap-10 xl:gap-[87px] my-10 lg:my-[65px]">
 
       <!-- Left Column: Content section matching Figma node 1:2537 -->
-      <div class="hero-content flex-1 w-full lg:max-w-[597px]">
+      <div class="hero-content relative z-20 flex-1 w-full lg:max-w-[597px]">
         <div v-if="badge" class="hero-badge mb-4">
           <span class="inline-flex items-center px-3.5 py-1 rounded-full bg-white/40 text-[#0709a2] text-xs font-bold uppercase tracking-wider backdrop-blur-xs">
             {{ badge }}
@@ -290,7 +322,7 @@ onUnmounted(() => {
           </template>
         </h1>
 
-        <p v-if="description" class="hero-desc text-[#141414] text-ds-16 sm:text-ds-18 mt-0 max-w-[572px] font-normal">
+        <p v-if="description" class="hero-desc text-[#141414] text-ds-16 sm:text-ds-18 mt-4 sm:mt-5 lg:mt-0 max-w-[572px] font-normal">
           {{ description }}
         </p>
 
@@ -302,20 +334,22 @@ onUnmounted(() => {
           >
             <span class="text-ds-18 sm:text-ds-20 font-normal whitespace-nowrap">{{ ctaText }}</span>
             <div class="size-[42px] rounded-[4px] flex items-center justify-center shrink-0">
-              <svg class="size-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
-              </svg>
+              <img
+                src="/images/footer/arrow-up-right.svg"
+                alt=""
+                class="size-6"
+              />
             </div>
           </a>
         </div>
       </div>
 
-      <!-- Right Column: Tech Illustration matching Figma node 1:2542 (breaks out of 1400px container on desktop) -->
-      <div class="hero-illustration flex-1 flex items-center justify-center lg:justify-start relative w-full lg:w-[760px] xl:w-[892px] lg:max-w-none lg:shrink-0 lg:mr-[-120px] xl:mr-[-180px] 2xl:mr-[-240px]">
+      <!-- Right Column: Tech Illustration matching Figma node 1:2542 (overlays behind text on mobile/tablet, breaks out on desktop) -->
+      <div class="hero-illustration absolute right-0 top-1/2 -translate-y-1/2 z-0 opacity-35 sm:opacity-45 pointer-events-none flex items-center justify-end w-[85%] max-w-[520px] lg:static lg:translate-y-0 lg:z-auto lg:opacity-100 lg:pointer-events-auto lg:flex-1 lg:justify-start lg:w-[760px] xl:w-[892px] lg:max-w-none lg:shrink-0 lg:mr-[-120px] xl:mr-[-180px] 2xl:mr-[-240px]">
         <InlineSvg
           :src="illustrationSrc"
           alt="Hero Illustration"
-          class="w-full max-w-[560px] lg:max-w-none lg:w-[760px] xl:w-[892px] h-auto"
+          class="w-full lg:w-[760px] xl:w-[892px] h-auto [&_svg]:overflow-visible"
           @loaded="onSvgLoaded"
         />
       </div>
@@ -326,7 +360,10 @@ onUnmounted(() => {
       v-if="hashtags && hashtags.length > 0"
       class="w-full py-6 lg:py-[30px] overflow-hidden select-none relative z-10"
     >
-      <div class="marquee-track flex gap-4 whitespace-nowrap animate-marquee">
+      <div
+        class="marquee-track flex gap-4 whitespace-nowrap animate-marquee"
+        :class="{ 'marquee-paused': !isHeroVisible || !introDone }"
+      >
         <div v-for="loop in 4" :key="loop" class="flex gap-4 items-center shrink-0">
           <span
             v-for="item in hashtags"
@@ -351,7 +388,8 @@ onUnmounted(() => {
   width: max-content;
   animation: marquee 35s linear infinite;
 }
-.animate-marquee:hover {
+.animate-marquee:hover,
+.animate-marquee.marquee-paused {
   animation-play-state: paused;
 }
 </style>

@@ -6,6 +6,14 @@ Tài liệu này lưu trữ lịch sử các phiên làm việc và giai đoạn
 
 ## 1. Nhật Ký Chi Tiết Các Phiên Làm Việc Trước Đó
 
+### Phiên làm việc: 20/11/2026 (Chiều & Cuối ngày)
+- **GSAP Animation 4 Thẻ Core Values (`CoreValuesSection`)**:
+  - Ghim màn hình (`pin: true`, `scrub: 1.2`, `end: '+=2400'`) tuần tự 5 bước xuất hiện 4 thẻ (S $\rightarrow$ F $\rightarrow$ P $\rightarrow$ B), nháy hover flash màu, làm mờ các thẻ khác (`opacity: 0.2`) rồi trượt vào grid và xoay vòng tròn mũi tên giữa.
+- **Hiệu Ứng Giọt Nước & Background Ly (`BrandPhilosophySection`)**:
+  - Giọt nước pha lê xám khói rơi chậm rãi (1.6s), chạm đáy loang nở thành chiếc ly kết hợp fade in và tan sương mờ.
+- **Tối Ưu & Đồng Bộ Các Section**:
+  - `TimelineSection`: Ghim full màn hình, tách 8 file SVG line & disc, vẽ runway line và bung mốc thời gian tuần tự; `MetricsSection`: tối ưu counter odometer; `VisionMissionSection`: chuyển thành section tĩnh.
+
 ### Phiên làm việc: 12/11/2026
 - **Header & Hero**: Chuyển TheHeader thành card nổi cố định (`fixed top-0`, `max-w-[1400px]`). HeroSection tách chữ "GROWTH" trắng, tích hợp hashtag marquee.
 - **Section 03 (Company Info)**: Cố định các layer đồ họa card video 10+ năm kinh nghiệm. Thêm text field độc lập tránh bị biến thành bullet list.
@@ -49,3 +57,11 @@ Tài liệu này lưu trữ lịch sử các phiên làm việc và giai đoạn
 - [x] Trang Liên hệ (`/contact`) & Bản Đồ Google Maps hoàn thiện.
 - [x] Nitro Proxy `/api/media` và `/api/contact` bảo mật Server-to-Server.
 - [x] Bàn giao cấu trúc Headless WP chuẩn xác.
+
+### Phiên làm việc: 19/11/2026 (Sáng & Chiều)
+- **Zero-Boilerplate & Tinh gọn Codebase (/ponytail)**:
+  - Thiết lập `docs/DESIGN_PATTERNS.md` (GSAP SSR-Safe, WPGraphQL auto-cleaner, Node UTF-8 sync script).
+  - Thu gọn `index.vue` và `about.vue` (-85% code) bằng cú pháp `v-bind` và `usePageSeo()`; refactor `useAboutPage.ts` (294 -> 147 dòng) và các section components.
+- **Gia cố Bảo mật Production**: Ẩn domain WordPress khỏi client bundle, chặn `__schema`/`__type`/`users` tại `server/api/graphql.post.ts`, tắt cache `/api/**`.
+- **Triển khai Production (Vercel + Pantheon)**: Đồng bộ 79 trường ACF Pro, xử lý lỗi mất Body/ISR, hoàn thiện `contact.post.ts`.
+- **Hoạt họa SVG & Hiệu năng**: Xây dựng `InlineSvg.vue`, tự động wrap nhóm SVG trong `HeroSection.vue`, tạm dừng tween ngoài viewport bằng `IntersectionObserver`.

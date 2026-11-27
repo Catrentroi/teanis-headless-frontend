@@ -2,3 +2,15 @@
  * Figma text styles (Lexend) — use with Tailwind text-ds-* from tailwind.config.
  * Section stacks: prefer gap-8 (32px) between major blocks unless a Figma px is documented.
  */
+html,
+body {
+  overflow-x: clip;
+  touch-action: pan-y;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}

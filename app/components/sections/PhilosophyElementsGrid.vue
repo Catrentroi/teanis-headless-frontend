@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { RoughEase } from 'gsap/EasePack'
 
-if (import.meta.client) gsap.registerPlugin(RoughEase)
+if (import.meta.client) gsap.registerPlugin(ScrollTrigger, RoughEase)
 
+const gridRef = ref<HTMLElement | null>(null)
+let ctx: gsap.Context | null = null
 const terraCardRef = ref<HTMLElement | null>(null)
 const aquaCardRef = ref<HTMLElement | null>(null)
 const ignisCardRef = ref<HTMLElement | null>(null)
@@ -121,7 +124,82 @@ const onVentusLeave = () => {
   resetPaths(ventusCardRef.value, ['.ventus-top-stream', '.ventus-bottom-stream', '.ventus-wind-path', '.ventus-wisp'], 0.6)
 }
 
+onMounted(() => {
+  if (!gridRef.value) return
+  ctx = gsap.context(() => {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: gridRef.value,
+        start: 'top 75%',
+        refreshPriority: -1,
+        once: true
+      }
+    })
+
+    // 1. TERRA (Đất): trồi vững chãi từ dưới lên cùng các tầng địa chất
+    if (terraCardRef.value) {
+      tl.fromTo(
+        terraCardRef.value,
+        { opacity: 0, y: 64, scale: 0.94 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.75, ease: 'power3.out', clearProps: 'transform' },
+        0
+      ).fromTo(
+        ['.terra-layer-1', '.terra-layer-2', '.terra-layer-3'],
+        { y: 24 },
+        { y: 0, duration: 0.65, stagger: 0.08, ease: 'power2.out', clearProps: 'transform' },
+        0.1
+      )
+    }
+
+    // 2. AQUA (Nước): thả rơi mềm từ trên xuống như dòng nước tụ lại
+    if (aquaCardRef.value) {
+      tl.fromTo(
+        aquaCardRef.value,
+        { opacity: 0, y: -44, scaleY: 0.9 },
+        { opacity: 1, y: 0, scaleY: 1, duration: 0.8, ease: 'sine.out', clearProps: 'transform' },
+        0.16
+      ).fromTo(
+        ['.aqua-wave-1', '.aqua-wave-2', '.aqua-wave-3'],
+        { y: -18, scale: 0.85 },
+        { y: 0, scale: 1, duration: 0.7, stagger: 0.09, ease: 'sine.out', clearProps: 'transform' },
+        0.24
+      )
+    }
+
+    // 3. IGNIS (Lửa): bật nở rực từ tâm đáy, ngọn lửa vươn cao lên
+    if (ignisCardRef.value) {
+      tl.fromTo(
+        ignisCardRef.value,
+        { opacity: 0, y: 48, scale: 0.78 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.75, ease: 'back.out(1.45)', clearProps: 'transform' },
+        0.32
+      ).fromTo(
+        ['.ignis-flame-1', '.ignis-flame-2', '.ignis-flame-3'],
+        { scaleY: 0.4, transformOrigin: 'bottom center' },
+        { scaleY: 1, duration: 0.65, stagger: 0.08, ease: 'power2.out', clearProps: 'transform' },
+        0.38
+      )
+    }
+
+    // 4. VENTUS (Gió): lướt chéo từ phải vào, các luồng gió quét qua
+    if (ventusCardRef.value) {
+      tl.fromTo(
+        ventusCardRef.value,
+        { opacity: 0, x: 56, y: -16 },
+        { opacity: 1, x: 0, y: 0, duration: 0.75, ease: 'power3.out', clearProps: 'transform' },
+        0.48
+      ).fromTo(
+        ['.ventus-top-stream', '.ventus-bottom-stream'],
+        { x: 32 },
+        { x: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out', clearProps: 'transform' },
+        0.54
+      )
+    }
+  }, gridRef.value)
+})
+
 onUnmounted(() => {
+  ctx?.revert()
   terraTl?.kill()
   aquaTl?.kill()
   ignisTweens.forEach(t => t.kill())
@@ -131,7 +209,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8 w-full mb-[50px] lg:mb-[260px] lg:py-[60px]">
+  <div ref="gridRef" class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8 w-full mb-24 sm:mb-28 lg:mb-[260px] lg:py-[60px]">
     <!-- 1. TERRA Card -->
     <div
       ref="terraCardRef"
